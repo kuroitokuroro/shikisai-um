@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&family=Noto+Sans+JP:wght@100..900&family=WDXL+Lubrifont+JP+N&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<title>色彩放置RPG</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #f5f5f5; }
+h2 { margin-top: 20px; }
+button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f9f9; opacity: 0.8;}
+#partnerStatus, #colorStatus { margin-top: 10px; }
+.colorDisplay { display: inline-block; width: 20px; height: 20px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+
+.icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-image {
+  width: 4em;
+  height: 4em;
+  border-radius: 10px;
+  border: 2px solid #3d5b7d;
+  box-shadow: 3px 3px 0 #3d5b7d;
+  margin: 2px;
+  padding: 2px;
+  display: block;
+}
+
+.icon-image p {
+    line-height: 1.5;
+}
+
+/* 共通オーバーレイ */
+.icon-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* 選択中 */
+.icon-wrapper.selected::after {
+  background: rgba(61, 91, 125, 0.5);
+  opacity: 1;
+}
+
+/* パートナー成立済み */
+.icon-wrapper.used::after {
+  background: rgba(61, 91, 125, 0.5);
+  opacity: 1;
+}
+
+.gauge {
+  width: 200px;
+  height: 14px;
+  background: #e0e6ef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 6px 0;
+  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.gauge-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #7fa9ff,
+    #9b7bff,
+    #7fa9ff
+  );
+  background-size: 200% 100%;
+  animation: gaugeMove 3s linear infinite;
+  border-radius: 10px;
+  transition: width 0.3s linear;
+}
+
+@keyframes gaugeMove {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.icon-small {
+  width: 3em;
+  height: 3em;
+  border-radius: 8px;
+  border: 2px solid #3d5b7d;
+  box-shadow: 2px 2px 0 #3d5b7d;
+  margin: 1px;
+  padding: 1px;
+}
+
+.partner-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+#bag {
+  padding: 16px;
+  border: 4px solid #B69782;
+  border-radius: 10px;
+  background: #F3E9E3;
+  box-shadow: 6px 6px 0 #B69782;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.color-orb {
+  width: 1.5em;
+  height: 1.5em;
+  position: relative;
+  border-radius: 63% 37% 35% 65% / 48% 58% 42% 52%;
+  background-color: var(--orb-color);
+  box-shadow:
+    2px 2px 0 rgba(0,0,0,0.35),
+    inset -2px -2px 0 rgba(0,0,0,0.15),
+    inset 2px 2px 0 rgba(255,255,255,0.15);
+  filter: none;
+  display: inline-block;
+  outline: 1px solid rgba(0,0,0,0.25);
+  outline-offset: -1px;
+}
+
+.color-red    { --orb-color: #d92d2d; }
+.color-blue   { --orb-color: #2f6ed9; }
+.color-green  { --orb-color: #3ea35c; }
+.color-orange { --orb-color: #e48a1f; }
+.color-purple { --orb-color: #7a4bd9; }
+.color-brown  { --orb-color: #8b4a2f; }
+.color-black  { --orb-color: #2a2a2a; }
+
+.warehouse-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.m-plus-rounded-1c-bold {
+  font-family: "M PLUS Rounded 1c", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.color-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.4);
+}
+
+#warehouse {
+  padding: 16px;
+  border: 4px solid #B69782;
+  border-radius: 10px;
+  background: #F3E9E3;
+  box-shadow: 6px 6px 0 #B69782;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 12px;
+}
+
+#logo {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.25;
+  z-index: 0;
+}
+
+#logo img {
+  max-width: 90%;
+  width: 700px;
+  height: auto;
+}
+
+#topButtons {
+  margin-top: 40px;   /* 好きなだけ下げる */
+  margin-bottom: 10px;
+}
+
+#pageFooter {
+  margin-top: 24px;
+  padding: 12px 0;
+
+  text-align: center;
+  color: #666;
+}
+
+#pageFooter img {
+  width: 90px;        /* ©ロゴ感のサイズ */
+  height: auto;
+  opacity: 0.8;          /* 不透明 */
+}
+
+</style>
+</head>
+<body>
+
+<div id="logo">
+  <img src="game_image/logo.png" alt="色彩UM ロゴ">
+</div>
+
+<div id="topButtons">
+  <button onclick="showScreen('status')">ステータス</button>
+  <button onclick="showScreen('game')">戦闘へ戻る</button>
+  <button onclick="showScreen('select')">パートナー</button>
+</div>
+
+<!-- 選択画面 -->
+<div id="selectScreen">
+<h2>少女を選択</h2>
+<div class="icon-wrapper" data-girl="淋漓">
+ <img src="game_image/rinri.jpg" class="icon-image" onclick="selectGirl('淋漓')">
+ </div>
+<div class="icon-wrapper" data-girl="唯奈">
+ <img src="game_image/yuina.jpg" class="icon-image" onclick="selectGirl('唯奈')">
+</div>
+<div class="icon-wrapper" data-girl="スミレ">
+  <img src="game_image/sumire.jpg" class="icon-image" onclick="selectGirl('スミレ')">
+</div>
+<h2>異型を選択</h2>
+<div class="icon-wrapper" data-monster="安全 真"><img src="game_image/makoto.jpg" class="icon-image" onclick="selectMonster('安全 真')"></div>
+<div class="icon-wrapper" data-monster="幼 ユリ"><img src="game_image/yuri.jpg" class="icon-image" onclick="selectMonster('幼 ユリ')"></div>
+<div class="icon-wrapper" data-monster="目覚 崇"><img src="game_image/takashi.jpg" class="icon-image" onclick="selectMonster('目覚 崇')"></div>
+<div class="icon-wrapper" data-monster="風下 咲"><img src="game_image/saki.jpg" class="icon-image" onclick="selectMonster('風下 咲')"></div>
+<div class="icon-wrapper" data-monster="文豪 統"><img src="game_image/osamu.jpg" class="icon-image" onclick="selectMonster('文豪 統')"></div>
+<div class="icon-wrapper" data-monster="力業 透"><img src="game_image/tooru.jpg" class="icon-image" onclick="selectMonster('力業 透')"></div>
+</div>
+
+<!-- 戦闘画面 -->
+<div id="gameScreen" style="display:none;">
+  <h2>パートナー</h2>
+  <div id="partnerStatus"></div>
+</div>
+
+<p><button id="mainButton" onclick="handleMainButton()">パートナー選択</button></p>
+
+<div class="color-slot"></div>
+  
+<!-- 色彩（画面部品） -->
+
+<div id="colorPanel">
+  <h2>獲得色彩</h2>
+  <div id="colorStatus"></div>
+
+  <h2>色彩バッグ</h2>
+  <div id="bag"></div>
+
+  <h2>倉庫</h2>
+  <div id="warehouse"></div>
+</div>
+
+<!-- ステータス画面 -->
+
+<div id="statusScreen" style="display:none;">
+  <h2>ステータス</h2>
+  <p>（ここに後で少女スキル・能力値）</p>
+</div>
+
+ <div class="color-slot"></div>
+
+<script>
+  
+function selectMonster(monster) {
+  if (!selectedGirl) {
+    alert("先に少女を選んでね");
+    return;
+  }
+
+  if (Object.values(selectedPairs).includes(monster)) {
+    alert("その異型は他の少女とパートナーだよ");
+    return;
+  }
+
+  selectedPairs[selectedGirl] = monster;
+  selectedGirl = null;
+
+  updateGirlStates();
+  updateMonsterStates();
+  updateConfirmedPartners();
+}
+
+const colorMap = {
+  "安全 真": "みどり",
+  "幼 ユリ": "オレンジ",
+  "目覚 崇": "あお",
+  "風下 咲": "むらさき",
+  "文豪 統": "ブラウン",
+  "力業 透": "あか"
+};
+
+const colorCSS = {
+  "みどり": "#2f9e44",
+  "オレンジ": "#e67700",
+  "あお": "#1c7ed6",
+  "むらさき": "#7048e8",
+  "ブラウン": "#8c4a1f",
+  "あか": "#c92a2a",
+  "くろ": "#1a1a1a"
+};
+
+const colorClassMap = {
+  "みどり": "color-green",
+  "オレンジ": "color-orange",
+  "あお": "color-blue",
+  "むらさき": "color-purple",
+  "ブラウン": "color-brown",
+  "あか": "color-red",
+  "くろ": "color-black"
+};
+
+let partners = [];
+
+function updatePartners() {
+  partners = [];
+
+  for (let girl in selectedPairs) {
+    const monster = selectedPairs[girl];
+    partners.push({
+      girl,
+      monster,
+      progress: 0,
+      speed: 1,
+      isComplete: false,
+      completeTimer: 0
+    });
+  }
+
+  updateStatus();
+}
+
+function updateGirlStates() {
+  document.querySelectorAll('.icon-wrapper[data-girl]').forEach(el => {
+    const girl = el.dataset.girl;
+    el.classList.remove("selected", "used");
+
+    if (selectedPairs[girl]) {
+      el.classList.add("used");        // パートナー成立済み
+    } else if (girl === selectedGirl) {
+      el.classList.add("selected");    // 選択中
+    }
+  });
+}
+
+function updateMonsterStates() {
+  document.querySelectorAll('.icon-wrapper[data-monster]').forEach(el => {
+    const monster = el.dataset.monster;
+    el.classList.toggle(
+      "used",
+      Object.values(selectedPairs).includes(monster)
+    );
+  });
+}
+
+function updateStatus() {
+  const area = document.getElementById("partnerStatus");
+  area.innerHTML = "";
+
+  partners.forEach(partner => {
+    const ui = createPartnerFrame(partner);
+    ui.fill.style.width = `${partner.progress}%`;
+    area.appendChild(ui.row);
+  });
+}
+
+function tick() {
+  partners.forEach(partner => {
+
+    // 満タン演出中
+    if (partner.isComplete) {
+      partner.completeTimer--;
+
+      if (partner.completeTimer <= 0) {
+        const colorsList = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];
+        const color = colorsList[Math.floor(Math.random() * colorsList.length)];
+        colorBag[color]++;
+        renderColorBag();
+
+        partner.progress = 0;
+        partner.isComplete = false;
+      }
+      return;
+    }
+
+    // 通常進行
+    partner.progress += 25 * partner.speed;
+
+    if (partner.progress >= 100) {
+      partner.progress = 100;
+      partner.isComplete = true;
+      partner.completeTimer = 1; // tick 1回分（500ms）
+    }
+  });
+  updateStatus();
+}
+
+function updateColors() {
+  const container = document.getElementById("colorStatus");
+  if(colors.length === 0) { container.textContent = "なし"; return; }
+  container.innerHTML = colors.map(c => `<span class="colorDisplay" style="background:${colorCSS[c]}"></span>`).join("");
+}
+
+setInterval(tick, 500);
+
+let selectedGirl = null;      // 今選んでいる少女
+let selectedPairs = {};      // 確定済みパートナー
+
+function selectGirl(girl) {
+  selectedGirl = girl;
+  updateGirlStates();
+}
+function confirmPartner() {
+  updatePartners();        // パートナー生成
+  showScreen("game");  // 戦闘へ
+}
+
+const girlImages = {
+  "淋漓": "game_image/rinri.jpg",
+  "唯奈": "game_image/yuina.jpg",
+  "スミレ": "game_image/sumire.jpg"
+};
+
+const monsterImages = {
+  "安全 真": "game_image/makoto.jpg",
+  "幼 ユリ": "game_image/yuri.jpg",
+  "目覚 崇": "game_image/takashi.jpg",
+  "風下 咲": "game_image/saki.jpg",
+  "文豪 統": "game_image/osamu.jpg",
+  "力業 透": "game_image/tooru.jpg"
+};
+
+let currentScreen = "select";
+
+function showScreen(screenName) {
+  const screens = ["select", "game", "status"];
+
+  screens.forEach(name => {
+    document.getElementById(name + "Screen").style.display =
+      name === screenName ? "block" : "none";
+  });
+  if (screenName === "game") {
+    attachColorPanel("gameScreen");
+  }
+
+  if (screenName === "status") {
+    attachColorPanel("statusScreen");
+  }
+  currentScreen = screenName;
+}
+
+function createPartnerFrame(partner) {
+  const row = document.createElement("div");
+  row.className = "partner-row";
+
+  // 少女アイコン
+  const girlImg = document.createElement("img");
+  girlImg.src = girlImages[partner.girl];
+  girlImg.className = "icon-small";
+
+  // 異型アイコン
+  const monsterImg = document.createElement("img");
+  monsterImg.src = monsterImages[partner.monster];
+  monsterImg.className = "icon-small";
+
+  // ゲージ
+  const gauge = document.createElement("div");
+  gauge.className = "gauge";
+
+  const fill = document.createElement("div");
+  fill.className = "gauge-fill";
+  fill.style.width = `${partner.progress}%`;
+
+  gauge.appendChild(fill);
+
+  // 行にまとめる
+  row.appendChild(girlImg);
+  row.appendChild(monsterImg);
+  row.appendChild(gauge);
+
+    // 解消ボタン
+  const removeBtn = document.createElement("button");
+   removeBtn.textContent = "×";
+   removeBtn.onclick = () => removePartner(partner);
+
+   row.appendChild(removeBtn);
+
+  return { row, fill };
+}
+
+function renderColorBag() {
+  const bag = document.getElementById("bag");
+  const warehouse = document.getElementById("warehouse");
+
+  bag.innerHTML = "";
+  warehouse.innerHTML = "";
+
+  for (let color in colorBag) {
+    const count = colorBag[color];
+    if (count === 0) continue;
+
+    /* ===== バッグ（● 最大10） ===== */
+    const bagFrame = document.createElement("div");
+    bagFrame.className = "color-group";
+    const bagCount = Math.min(count, 10);
+   for (let i = 0; i < bagCount; i++) {
+  const dot = document.createElement("span");
+
+  // 基本形
+  dot.className = "color-orb";
+
+  // 色の種類をクラスで付与
+  dot.classList.add(colorClassMap[color]);
+  bagFrame.appendChild(dot);
+}
+bag.appendChild(bagFrame);
+
+    /* ===== 倉庫（× 最大100） ===== */
+    if (count > 10) {
+      const group = document.createElement("div");
+      group.className = "color-group";
+      const orb = document.createElement("span");
+      orb.className = "color-orb";
+      orb.classList.add(colorClassMap[color]);
+      const text = document.createElement("span");
+      const warehouseCount = Math.min(count - 10, 100); 
+      text.textContent = `× ${warehouseCount}`;
+
+group.appendChild(orb);
+group.appendChild(text);
+warehouse.appendChild(group);
+    }
+  }
+}
+
+function removePartner(partner) {
+  // partners から削除
+  partners = partners.filter(t => t !== partner);
+
+  // selectedPairs からも削除
+  delete selectedPairs[partner.girl];
+
+  updateGirlStates();
+  updateMonsterStates();
+  updateStatus();
+}
+
+const colorBag = {
+  "みどり": 0,
+  "オレンジ": 0,
+  "あお": 0,
+  "むらさき": 0,
+  "ブラウン": 0,
+  "あか": 0,
+  "くろ": 0
+};
+
+function handleMainButton() {
+  if (currentScreen === "select") {
+    confirmPartner();
+  } else {
+    showScreen("select");
+  }
+}
+
+function attachColorPanel(targetScreenId) {
+  const slot = document
+    .getElementById(targetScreenId)
+    .querySelector(".color-slot");
+
+  slot.appendChild(document.getElementById("colorPanel"));
+}
+
+  //ステータス設定資料
+  
+const KENSEI_LIST = {
+  kensei_1: "凡",
+  kensei_2: "恋",
+  kensei_3: "異",
+  kensei_4: "卑",
+  kensei_5: "狂",
+  kensei_6: "熱"
+};
+
+const IKI_MONSTERS = {
+  makoto: {
+    name: "安全 真",
+    kensei: {
+      kensei_1: 20,
+      kensei_2: 4,
+      kensei_3: 4,
+      kensei_4: 12,
+      kensei_5: 12,
+      kensei_6: 12
+    }
+  },
+
+  yuri: {
+    name: "幼 ユリ",
+    kensei: {
+      kensei_1: 12,
+      kensei_2: 20,
+      kensei_3: 12,
+      kensei_4: 4,
+      kensei_5: 4,
+      kensei_6: 12
+    }
+  },
+
+  takashi: {
+    name: "目覚 崇",
+    kensei: {
+      kensei_1: 4,
+      kensei_2: 12,
+      kensei_3: 20,
+      kensei_4: 4,
+      kensei_5: 12,
+      kensei_6: 12
+    }
+  },
+
+  saki: {
+    name: "風下 咲",
+    kensei: {
+      kensei_1: 12,
+      kensei_2: 12,
+      kensei_3: 12,
+      kensei_4: 20,
+      kensei_5: 4,
+      kensei_6: 4
+    }
+  },
+
+  osamu: {
+    name: "文豪 統",
+    kensei: {
+      kensei_1: 4,
+      kensei_2: 12,
+      kensei_3: 12,
+      kensei_4: 12,
+      kensei_5: 20,
+      kensei_6: 4
+    }
+  },
+
+  tooru: {
+    name: "力業 透",
+    kensei: {
+      kensei_1: 12,
+      kensei_2: 4,
+      kensei_3: 4,
+      kensei_4: 12,
+      kensei_5: 12,
+      kensei_6: 20
+    }
+  }
+};
+
+</script>
+
+<footer id="pageFooter">
+  <img src="game_image/logo.png" alt="色彩UM ロゴ">
+</footer>
+
+</div>
+</body>
+</html>
