@@ -4,17 +4,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&family=Noto+Sans+JP:wght@100..900&family=WDXL+Lubrifont+JP+N&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material Symbols Outlined" rel="stylesheet">
 <meta charset="UTF-8">
 <title>色彩UM-異型と旅する放置ゲーム-</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+
 body {
   font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #f5f5f5; }
 h2 { margin-top: 20px; }
 button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f9f9; opacity: 0.8;}
 #partnerStatus, #colorStatus { margin-top: 10px; }
 .colorDisplay { display: inline-block; width: 20px; height: 20px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+.m-plus-rounded-1c-bold {  font-family: "M PLUS Rounded 1c", sans-serif;
+  font-weight: 500;
+  font-style: normal;}
+.status-header div {  white-space: pre-line;}
 
+/* アイコン */
 .icon-wrapper {
   position: relative;
   display: inline-block;
@@ -24,22 +31,32 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   width: 4em;
   height: 4em;
   border-radius: 10px;
-  border: 2px solid #3d5b7d;
-  box-shadow: 3px 3px 0 #3d5b7d;
-  margin: 2px;
+  border: 2px solid #6E88A4;
+  box-shadow: 3px 3px 0 #6E88A4;
+  margin: 4px;
   padding: 2px;
   display: block;
 }
 
 .icon-image p {
-    line-height: 1.5;
+  line-height: 1.5;
+}
+
+.icon-small {
+  width: 3em;
+  height: 3em;
+  border-radius: 8px;
+  border: 2px solid #6E88A4;
+  box-shadow: 2px 2px 0 #6E88A4;
+  margin: 2px;
+  padding: 2px;
 }
 
 /* 共通オーバーレイ */
 .icon-wrapper::after {
   content: "";
   position: absolute;
-  inset: 8px;
+  inset: 0px;
   border-radius: 10px;
   pointer-events: none;
   opacity: 0;
@@ -48,24 +65,26 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 
 /* 選択中 */
 .icon-wrapper.selected::after {
-  background: rgba(61, 91, 125, 0.5);
+  margin: 4px;
+  background: rgba(110, 136, 164, 0.5);
   opacity: 1;
 }
 
 /* パートナー成立済み */
 .icon-wrapper.used::after {
-  background: rgba(61, 91, 125, 0.5);
+  margin: 4px;
+  background: rgba(110, 136, 164, 0.5);
   opacity: 1;
 }
 
+/* 探索ゲージ */
 .gauge {
   width: 200px;
   height: 14px;
-  background: #e0e6ef;
+  background: #dae1f0;
   border-radius: 10px;
   overflow: hidden;
-  margin: 6px 0;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+  margin: 6px 6px;
 }
 
 .gauge-fill {
@@ -87,16 +106,6 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   100% { background-position: 100% 50%; }
 }
 
-.icon-small {
-  width: 3em;
-  height: 3em;
-  border-radius: 8px;
-  border: 2px solid #3d5b7d;
-  box-shadow: 2px 2px 0 #3d5b7d;
-  margin: 1px;
-  padding: 1px;
-}
-
 .partner-row {
   display: flex;
   align-items: center;
@@ -104,6 +113,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   margin-bottom: 10px;
 }
 
+/* バッグ、色彩 */
 #bag {
   padding: 16px;
   border: 4px solid #B69782;
@@ -140,18 +150,23 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 .color-brown  { --orb-color: #8b4a2f; }
 .color-black  { --orb-color: #2a2a2a; }
 
+#warehouse {
+  padding: 16px;
+  border: 4px solid #B69782;
+  border-radius: 10px;
+  background: #F3E9E3;
+  box-shadow: 6px 6px 0 #B69782;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 12px;
+}
+
 .warehouse-slot {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
   font-weight: bold;
-}
-
-.m-plus-rounded-1c-bold {
-  font-family: "M PLUS Rounded 1c", sans-serif;
-  font-weight: 500;
-  font-style: normal;
 }
 
 .color-group {
@@ -164,17 +179,6 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.4);
-}
-
-#warehouse {
-  padding: 16px;
-  border: 4px solid #B69782;
-  border-radius: 10px;
-  background: #F3E9E3;
-  box-shadow: 6px 6px 0 #B69782;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px 12px;
 }
 
 #logo {
@@ -193,39 +197,163 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 }
 
 #topButtons {
-  margin-top: 40px;   /* 好きなだけ下げる */
+  margin-top: 40px; 
   margin-bottom: 10px;
 }
 
 #pageFooter {
   margin-top: 24px;
   padding: 12px 0;
-
   text-align: center;
   color: #666;
 }
 
 #pageFooter img {
-  width: 90px;        /* ©ロゴ感のサイズ */
+  width: 90px;
   height: auto;
-  opacity: 0.8;          /* 不透明 */
+  opacity: 0.8;
 }
 
-</style>
-</head>
-<body>
+/* ステータス要素 */
+.status-card {
+  padding: 15px;
+  margin: 20px 0px;
+  border: 4px solid #e0e6ef;
+  border-radius: 10px;
+  background: #8095AE;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-image {
+  width: 7em;
+  height: 7em;
+  border-radius: 10px;
+  border: 3px solid #e0e6ef;
+  padding: 4px;
+  display: block;
+}
+
+.status-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 10px;
+  min-height: 7em;
+}
+
+.status-header {
+  width: 20em;
+  margin: 5px 0px;
+  min-height: 7em;
+  border-radius: 10px;
+  background: #e0e6ef;
+  padding: 6px 15px 0px 15px;
+  font-size: 1em;
+}
+
+.status-name {
+  font-size: 1.3em;
+  line-height: 200%;
+  background: linear-gradient(transparent 60%, #aebdd4 60%);
+}
+
+.status-bottom {
+  padding: 10px;
+  border-radius: 10px;
+  border: 4px solid #e0e6ef;
+  background: #e0e6ef;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ステータス、傾性部分 */
+.keisei-row {
+  display: flex;
+  padding: 0px 0px 3px 0px;
+  margin: 0px 0px 5px 0px;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(transparent 70%, #aebdd4 70%);
+}
+
+.keisei-label {
+  font-size: 1.2rem;
+  background-color: #8095AE;
+  border: 4px solid #8095AE;
+  border-radius: 4px;
+  line-height: 1;
+  color:#fff;
+  margin: 4px;
+}
+
+.keisei-dot .color-orb {
+  position:relative;
+  transform: scale(1.2);
+  top: 4px;
+  margin: 2px;
+}
+
+.keisei-bar {
+  width: 130px;
+  height: 15px;
+  margin: 3px;
+  padding: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow:
+  inset 1px 1px 2px rgba(0,0,0,0.1);
+  margin-left: auto;
+}
+
+.keisei-fill {
+  background: linear-gradient(
+    90deg,
+    #d4535d,
+    #94323a,
+  );
+}
+
+#statusTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#statusTabs .color-orb {
+  transform: scale(1.2);
+  margin: 8px;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+#statusTabs .color-orb.active {
+  opacity: 1;
+  transform: scale(1.3);
+}
+
+.tab {
+  opacity: 0.5;
+}
+
+.tab.active {
+  opacity: 1;
+  outline: 2px solid #8095AE;
+}
+
+</style>   </head>   <body>
 
 <div id="logo">
-  <img src="game_image/logo.png" alt="色彩UM ロゴ">
-</div>
+  <img src="game_image/logo.png" alt="色彩UM ロゴ"></div>
 
 <div id="topButtons">
-  <button onclick="showScreen('status')">ステータス</button>
-  <button onclick="showScreen('game')">戦闘へ戻る</button>
   <button onclick="showScreen('select')">パートナー</button>
-</div>
+  <button onclick="showScreen('search')">探索</button>
+  <button onclick="showScreen('status')">能力</button>
+  <button onclick="showScreen('battle')">戦闘</button></div>
 
 <!-- 選択画面 -->
+
 <div id="selectScreen">
 <h2>少女を選択</h2>
 <div class="icon-wrapper" data-girl="淋漓">
@@ -237,6 +365,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 <div class="icon-wrapper" data-girl="スミレ">
   <img src="game_image/sumire.jpg" class="icon-image" onclick="selectGirl('スミレ')">
 </div>
+
 <h2>異型を選択</h2>
 <div class="icon-wrapper" data-monster="安全 真"><img src="game_image/makoto.jpg" class="icon-image" onclick="selectMonster('安全 真')"></div>
 <div class="icon-wrapper" data-monster="幼 ユリ"><img src="game_image/yuri.jpg" class="icon-image" onclick="selectMonster('幼 ユリ')"></div>
@@ -244,18 +373,30 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 <div class="icon-wrapper" data-monster="風下 咲"><img src="game_image/saki.jpg" class="icon-image" onclick="selectMonster('風下 咲')"></div>
 <div class="icon-wrapper" data-monster="文豪 統"><img src="game_image/osamu.jpg" class="icon-image" onclick="selectMonster('文豪 統')"></div>
 <div class="icon-wrapper" data-monster="力業 透"><img src="game_image/tooru.jpg" class="icon-image" onclick="selectMonster('力業 透')"></div>
-</div>
+<h2>3組選んだら...</h2>
+<p><button id="mainButton" onclick="handleMainButton()">パートナー選択</button></p></div>
+
+<div id="color-slot"></div>
+
+<!-- 探索画面 -->
+
+<div id="searchScreen" style="display:none;">
+  <h2>パートナー</h2>
+  <div id="partnerStatus"></div></div>
+<div id="color-slot"></div>
+
+<!-- ステータス画面 -->
+
+<div id="statusScreen" style="display:none;">
+  <h2>ステータス</h2>
+<div id="statusTabs"></div>
+<div id="statusList"></div></div>
 
 <!-- 戦闘画面 -->
-<div id="gameScreen" style="display:none;">
-  <h2>パートナー</h2>
-  <div id="partnerStatus"></div>
-</div>
 
-<p><button id="mainButton" onclick="handleMainButton()">パートナー選択</button></p>
+<div id="battleScreen" style="display:none;">
+  <h2>ここに戦闘画面を置く</h2></div>
 
-<div class="color-slot"></div>
-  
 <!-- 色彩（画面部品） -->
 
 <div id="colorPanel">
@@ -266,17 +407,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   <div id="bag"></div>
 
   <h2>倉庫</h2>
-  <div id="warehouse"></div>
-</div>
-
-<!-- ステータス画面 -->
-
-<div id="statusScreen" style="display:none;">
-  <h2>ステータス</h2>
-  <p>（ここに後で少女スキル・能力値）</p>
-</div>
-
- <div class="color-slot"></div>
+  <div id="warehouse"></div></div>
 
 <script>
   
@@ -296,7 +427,6 @@ function selectMonster(monster) {
 
   updateGirlStates();
   updateMonsterStates();
-  updateConfirmedPartners();
 }
 
 const colorMap = {
@@ -354,9 +484,10 @@ function updateGirlStates() {
     el.classList.remove("selected", "used");
 
     if (selectedPairs[girl]) {
-      el.classList.add("used");        // パートナー成立済み
+      el.classList.add("used");
+      
     } else if (girl === selectedGirl) {
-      el.classList.add("selected");    // 選択中
+      el.classList.add("selected");
     }
   });
 }
@@ -385,7 +516,6 @@ function updateStatus() {
 function tick() {
   partners.forEach(partner => {
 
-    // 満タン演出中
     if (partner.isComplete) {
       partner.completeTimer--;
 
@@ -401,36 +531,29 @@ function tick() {
       return;
     }
 
-    // 通常進行
     partner.progress += 25 * partner.speed;
 
     if (partner.progress >= 100) {
       partner.progress = 100;
       partner.isComplete = true;
-      partner.completeTimer = 1; // tick 1回分（500ms）
+      partner.completeTimer = 1; 
     }
   });
   updateStatus();
 }
 
-function updateColors() {
-  const container = document.getElementById("colorStatus");
-  if(colors.length === 0) { container.textContent = "なし"; return; }
-  container.innerHTML = colors.map(c => `<span class="colorDisplay" style="background:${colorCSS[c]}"></span>`).join("");
-}
-
 setInterval(tick, 500);
 
-let selectedGirl = null;      // 今選んでいる少女
-let selectedPairs = {};      // 確定済みパートナー
+let selectedGirl = null;
+let selectedPairs = {};
 
 function selectGirl(girl) {
   selectedGirl = girl;
   updateGirlStates();
 }
 function confirmPartner() {
-  updatePartners();        // パートナー生成
-  showScreen("game");  // 戦闘へ
+  updatePartners();
+  showScreen("search");
 }
 
 const girlImages = {
@@ -451,20 +574,24 @@ const monsterImages = {
 let currentScreen = "select";
 
 function showScreen(screenName) {
-  const screens = ["select", "game", "status"];
+  const screens = ["select", "search", "status" ,"battle"];
 
   screens.forEach(name => {
     document.getElementById(name + "Screen").style.display =
       name === screenName ? "block" : "none";
   });
-  if (screenName === "game") {
-    attachColorPanel("gameScreen");
-  }
+  const showColor =
+    screenName === "search" || screenName === "status" || screenName === "select" || screenName === "battle";
 
-  if (screenName === "status") {
+  document.getElementById("colorPanel").style.display =
+    showColor ? "block" : "none";
+    
+   if (screenName === "status") {
+    renderStatusTabs();
+    renderStatusScreen();
     attachColorPanel("statusScreen");
   }
-  currentScreen = screenName;
+   currentScreen = screenName;
 }
 
 function createPartnerFrame(partner) {
@@ -491,12 +618,10 @@ function createPartnerFrame(partner) {
 
   gauge.appendChild(fill);
 
-  // 行にまとめる
   row.appendChild(girlImg);
   row.appendChild(monsterImg);
   row.appendChild(gauge);
 
-    // 解消ボタン
   const removeBtn = document.createElement("button");
    removeBtn.textContent = "×";
    removeBtn.onclick = () => removePartner(partner);
@@ -524,10 +649,8 @@ function renderColorBag() {
    for (let i = 0; i < bagCount; i++) {
   const dot = document.createElement("span");
 
-  // 基本形
   dot.className = "color-orb";
 
-  // 色の種類をクラスで付与
   dot.classList.add(colorClassMap[color]);
   bagFrame.appendChild(dot);
 }
@@ -552,10 +675,8 @@ warehouse.appendChild(group);
 }
 
 function removePartner(partner) {
-  // partners から削除
+  
   partners = partners.filter(t => t !== partner);
-
-  // selectedPairs からも削除
   delete selectedPairs[partner.girl];
 
   updateGirlStates();
@@ -581,7 +702,7 @@ function handleMainButton() {
   }
 }
 
-function attachColorPanel(targetScreenId) {
+function attach(targetScreenId) {
   const slot = document
     .getElementById(targetScreenId)
     .querySelector(".color-slot");
@@ -591,88 +712,235 @@ function attachColorPanel(targetScreenId) {
 
   //ステータス設定資料
   
-const KENSEI_LIST = {
-  kensei_1: "凡",
-  kensei_2: "恋",
-  kensei_3: "異",
-  kensei_4: "卑",
-  kensei_5: "狂",
-  kensei_6: "熱"
+const keisei_LABELS = {
+  keisei_1: "凡",
+  keisei_2: "恋",
+  keisei_3: "異",
+  keisei_4: "卑",
+  keisei_5: "狂",
+  keisei_6: "熱"
 };
 
-const IKI_MONSTERS = {
+const IKEI_STATUS = {
   makoto: {
     name: "安全 真",
-    kensei: {
-      kensei_1: 20,
-      kensei_2: 4,
-      kensei_3: 4,
-      kensei_4: 12,
-      kensei_5: 12,
-      kensei_6: 12
-    }
+    description: "まじめで頑固\n例外や応用がわからない",
+    image: "game_image/makoto_full.jpg",
+    keisei: {
+      keisei_1: 20,
+      keisei_2: 4,
+      keisei_3: 4,
+      keisei_4: 12,
+      keisei_5: 12,
+      keisei_6: 12
+    },
+    color: "みどり"
   },
-
   yuri: {
     name: "幼 ユリ",
-    kensei: {
-      kensei_1: 12,
-      kensei_2: 20,
-      kensei_3: 12,
-      kensei_4: 4,
-      kensei_5: 4,
-      kensei_6: 12
-    }
+    description: "気分屋で惚れっぽい\nあなたがすべて",
+    image: "game_image/yuri_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 20,
+      keisei_3: 12,
+      keisei_4: 4,
+      keisei_5: 4,
+      keisei_6: 12
+    },
+    color: "オレンジ"
   },
-
   takashi: {
     name: "目覚 崇",
-    kensei: {
-      kensei_1: 4,
-      kensei_2: 12,
-      kensei_3: 20,
-      kensei_4: 4,
-      kensei_5: 12,
-      kensei_6: 12
-    }
+    description: "陽気な道化\n異端こそ生き甲斐",
+    image: "game_image/takashi_full.jpg",
+    keisei: {
+      keisei_1: 4,
+      keisei_2: 12,
+      keisei_3: 20,
+      keisei_4: 4,
+      keisei_5: 12,
+      keisei_6: 12
+    },
+    color: "あお"
   },
-
   saki: {
     name: "風下 咲",
-    kensei: {
-      kensei_1: 12,
-      kensei_2: 12,
-      kensei_3: 12,
-      kensei_4: 20,
-      kensei_5: 4,
-      kensei_6: 4
-    }
+    description: "臆病で親切\n不安に苛まれている",
+    image: "game_image/saki_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 12,
+      keisei_3: 12,
+      keisei_4: 20,
+      keisei_5: 4,
+      keisei_6: 4
+    },
+    color: "むらさき"
   },
-
   osamu: {
     name: "文豪 統",
-    kensei: {
-      kensei_1: 4,
-      kensei_2: 12,
-      kensei_3: 12,
-      kensei_4: 12,
-      kensei_5: 20,
-      kensei_6: 4
-    }
+    description: "思考と論理\n我在るのは思う為",
+    image: "game_image/osamu_full.jpg",
+    keisei: {
+      keisei_1: 4,
+      keisei_2: 12,
+      keisei_3: 12,
+      keisei_4: 12,
+      keisei_5: 20,
+      keisei_6: 4
+    },
+    color: "ブラウン"
   },
-
   tooru: {
     name: "力業 透",
-    kensei: {
-      kensei_1: 12,
-      kensei_2: 4,
-      kensei_3: 4,
-      kensei_4: 12,
-      kensei_5: 12,
-      kensei_6: 20
-    }
-  }
+    description: "剛腕と気合\n出来ないことなどない",
+    image: "game_image/tooru_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 4,
+      keisei_3: 4,
+      keisei_4: 12,
+      keisei_5: 12,
+      keisei_6: 20
+    },
+    color: "あか"
+  },
 };
+// ステータス大枠
+function renderStatusScreen() {
+  const area = document.getElementById("statusList");
+  area.innerHTML = "";
+  
+  Object.entries(IKEI_STATUS).forEach(([id, char]) => {
+    const card = createStatusCard(char);
+    card.dataset.charId = id;
+    
+    area.appendChild(card);
+  });
+}
+
+function renderStatusTabs() {
+  const tabs = document.getElementById("statusTabs");
+  tabs.innerHTML = "";
+  
+  const allOrb = document.createElement("span");
+  allOrb.className = "color-orb all";
+  allOrb.dataset.charId = "all";
+  allOrb.textContent = "ALL";
+
+  allOrb.onclick = () => selectTab("all");
+  tabs.appendChild(allOrb);
+  
+  Object.entries(IKEI_STATUS).forEach(([id, char]) => {
+    const orb = document.createElement("span");
+    orb.className = `color-orb ${colorClassMap[char.color]}`;
+    orb.title = char.name;
+    orb.dataset.charId = id;
+    orb.onclick = () => selectTab(id);
+    orb.onclick = () => {
+  selectTab(id);
+  showSingleStatus(id);
+};
+    tabs.appendChild(orb);
+  });
+}
+
+function showSingleStatus(charId) {
+  document.querySelectorAll(".status-card").forEach(card => {
+    card.style.display =
+      card.dataset.charId === charId ? "block" : "none";
+  });
+}
+// ステータス詳細
+function createStatusCard(char, charId) {
+  const card = document.createElement("div");
+  card.className = "status-card";
+  card.dataset.charId = charId;
+
+  const top = document.createElement("div");
+  top.className = "status-top";
+
+  const img = document.createElement("img");
+  img.src = char.image;
+  img.className = "status-image";
+
+  const header = document.createElement("div");
+  header.className = "status-header";
+
+  const name = document.createElement("strong");
+  name.className = "status-name";
+  name.textContent = char.name;
+
+  const desc = document.createElement("div");
+  desc.textContent = char.description;
+
+  header.appendChild(name);
+  header.appendChild(desc);
+
+  top.appendChild(img);
+  top.appendChild(header);
+
+  const bottom = document.createElement("div");
+  bottom.className = "status-bottom";
+
+  Object.entries(char.keisei).forEach(([key, value]) => {
+    const row = document.createElement("div");
+    row.className = "keisei-row";
+
+    const label = document.createElement("span");
+    label.className = "keisei-label";
+    label.textContent = keisei_LABELS[key];
+
+    const dotBox = document.createElement("div");
+    dotBox.className = "keisei-dot";
+
+    const colorClass = colorClassMap[char.color];
+    const count = keiseiDot(value);
+
+    for (let i = 0; i < count; i++) {
+      const orb = document.createElement("span");
+      orb.className = `color-orb ${colorClass}`;
+      dotBox.appendChild(orb);
+    }
+
+    const bar = document.createElement("div");
+    bar.className = "keisei-bar";
+
+    row.appendChild(label);
+    row.appendChild(dotBox);
+    row.appendChild(bar);
+    bottom.appendChild(row);
+  });
+
+  card.appendChild(top);
+  card.appendChild(bottom);
+
+  return card;
+}
+
+function selectTab(charId) {
+  activeStatusId = charId;
+
+  document.querySelectorAll(".status-card").forEach(card => {
+  card.style.display =
+  charId === "all" || card.dataset.charId === charId
+    ? "block"
+    : "none";
+});
+  
+  document.querySelectorAll("#statusTabs .color-orb").forEach(orb => {
+    orb.classList.toggle("active", orb.dataset.charId === charId);
+  });
+}
+
+let activeStatusId = "all";
+
+function keiseiDot(value) {
+  if (value >= 16) return 3;
+  if (value >= 8) return 2;
+  return 1;
+}
 
 </script>
 
