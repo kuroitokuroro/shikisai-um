@@ -8,10 +8,16 @@
 <meta charset="UTF-8">
 <title>色彩UM-異型と旅する放置ゲーム-</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 
-body {
-  font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #f5f5f5; }
+@media (min-width: 1024px) {
+  #app {
+    transform: scale(2);
+    transform-origin: top center;}}
+
+#app { width: 320px; margin: 0 auto;}
+body { font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #f5f5f5; }
 h2 { margin-top: 20px; }
 button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f9f9; opacity: 0.8;}
 #partnerStatus, #colorStatus { margin-top: 10px; }
@@ -250,6 +256,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   background: #e0e6ef;
   padding: 6px 15px 0px 15px;
   font-size: 1em;
+  letter-spacing:0.5px;
 }
 
 .status-name {
@@ -311,8 +318,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
     90deg,
     #d4535d,
     #94323a,
-  );
-}
+  ); }
 
 #statusTabs {
   display: flex;
@@ -321,15 +327,15 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 }
 
 #statusTabs .color-orb {
-  transform: scale(1.2);
-  margin: 8px;
+  transform: scale(1.5);
+  margin: 10px;
   opacity: 0.5;
   cursor: pointer;
 }
 
 #statusTabs .color-orb.active {
   opacity: 1;
-  transform: scale(1.3);
+  transform: scale(2);
 }
 
 .tab {
@@ -341,10 +347,37 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   outline: 2px solid #8095AE;
 }
 
-</style>   </head>   <body>
+#stageDropdown {
+  font-size: 1.1rem;
+  margin: 0px 10px;
+  padding: 6px 10px;
+}
 
-<div id="logo">
-  <img src="game_image/logo.png" alt="色彩UM ロゴ"></div>
+#kunnanButtons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ドッスン風 苦難ボタン */
+.kunnan-btn {
+  height: 60px;
+  background: #9a9a9a;
+  border: 4px solid #6f6f6f;
+  border-radius: 6px; /* 角が少し丸い */
+  box-shadow:
+    inset -3px -3px 0 rgba(0,0,0,0.2),
+    inset 3px 3px 0 rgba(255,255,255,0.2);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.kunnan-btn:hover {
+  background: #b0b0b0;
+}
+
+</style> </head> <body> <div id="app">
 
 <div id="topButtons">
   <button onclick="showScreen('select')">パートナー</button>
@@ -353,7 +386,6 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   <button onclick="showScreen('battle')">戦闘</button></div>
 
 <!-- 選択画面 -->
-
 <div id="selectScreen">
 <h2>少女を選択</h2>
 <div class="icon-wrapper" data-girl="淋漓">
@@ -379,26 +411,39 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 <div id="color-slot"></div>
 
 <!-- 探索画面 -->
-
 <div id="searchScreen" style="display:none;">
   <h2>パートナー</h2>
   <div id="partnerStatus"></div></div>
 <div id="color-slot"></div>
 
 <!-- ステータス画面 -->
-
 <div id="statusScreen" style="display:none;">
   <h2>ステータス</h2>
 <div id="statusTabs"></div>
 <div id="statusList"></div></div>
 
 <!-- 戦闘画面 -->
+<div id="battleScreen" style="display:none;"><h2>戦闘画面</h2>
 
-<div id="battleScreen" style="display:none;">
-  <h2>ここに戦闘画面を置く</h2></div>
+<!-- ステージ選択 -->
+<div id="stageSelect">
+  <label>
+  <strong style="font-size: 1.5em;">ステージ選択</strong>
+    <select id="stageDropdown">
+      <option value="">- - - - -</option>
+      <option value="1">ステージ 1</option>
+      <option value="2">ステージ 2</option>
+      <option value="2">ステージ 3</option>
+    </select>
+  </label>
+</div>
+
+<!-- 苦難選択 -->
+<div id="kunnanSelect" style="display:none;">
+  <h3>苦難を選択</h3>
+  <div id="kunnanButtons"></div></div></div>
 
 <!-- 色彩（画面部品） -->
-
 <div id="colorPanel">
   <h2>獲得色彩</h2>
   <div id="colorStatus"></div>
@@ -408,9 +453,153 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 
   <h2>倉庫</h2>
   <div id="warehouse"></div></div>
+</div> <script>
 
-<script>
-  
+const colorMap = {
+  "安全 真": "みどり",
+  "幼 ユリ": "オレンジ",
+  "目覚 崇": "あお",
+  "風下 咲": "むらさき",
+  "文豪 統": "ブラウン",
+  "力業 透": "あか"
+};
+const colorCSS = {
+  "みどり": "#2f9e44",
+  "オレンジ": "#e67700",
+  "あお": "#1c7ed6",
+  "むらさき": "#7048e8",
+  "ブラウン": "#8c4a1f",
+  "あか": "#c92a2a",
+  "くろ": "#1a1a1a"
+};
+const colorClassMap = {
+  "みどり": "color-green",
+  "オレンジ": "color-orange",
+  "あお": "color-blue",
+  "むらさき": "color-purple",
+  "ブラウン": "color-brown",
+  "あか": "color-red",
+  "くろ": "color-black"
+};
+const girlImages = {
+  "淋漓": "game_image/rinri.jpg",
+  "唯奈": "game_image/yuina.jpg",
+  "スミレ": "game_image/sumire.jpg"
+};
+const monsterImages = {
+  "安全 真": "game_image/makoto.jpg",
+  "幼 ユリ": "game_image/yuri.jpg",
+  "目覚 崇": "game_image/takashi.jpg",
+  "風下 咲": "game_image/saki.jpg",
+  "文豪 統": "game_image/osamu.jpg",
+  "力業 透": "game_image/tooru.jpg"
+};
+const colorBag = {
+  "みどり": 0,
+  "オレンジ": 0,
+  "あお": 0,
+  "むらさき": 0,
+  "ブラウン": 0,
+  "あか": 0,
+  "くろ": 0
+};
+//ステータス設定資料
+  const keisei_LABELS = {
+  keisei_1: "凡",
+  keisei_2: "恋",
+  keisei_3: "異",
+  keisei_4: "卑",
+  keisei_5: "狂",
+  keisei_6: "熱"
+};
+
+const IKEI_STATUS = {
+  makoto: {
+    name: "安全 真",
+    description: "まじめで頑固\n例外や応用がわからない",
+    image: "game_image/makoto_full.jpg",
+    keisei: {
+      keisei_1: 20,
+      keisei_2: 4,
+      keisei_3: 4,
+      keisei_4: 12,
+      keisei_5: 12,
+      keisei_6: 12
+    },
+    color: "みどり"
+  },
+  yuri: {
+    name: "幼 ユリ",
+    description: "気分屋で惚れっぽい\nあなたがすべて",
+    image: "game_image/yuri_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 20,
+      keisei_3: 12,
+      keisei_4: 4,
+      keisei_5: 4,
+      keisei_6: 12
+    },
+    color: "オレンジ"
+  },
+  takashi: {
+    name: "目覚 崇",
+    description: "陽気な道化\n異端こそ生き甲斐",
+    image: "game_image/takashi_full.jpg",
+    keisei: {
+      keisei_1: 4,
+      keisei_2: 12,
+      keisei_3: 20,
+      keisei_4: 4,
+      keisei_5: 12,
+      keisei_6: 12
+    },
+    color: "あお"
+  },
+  saki: {
+    name: "風下 咲",
+    description: "臆病で親切\n不安に苛まれている",
+    image: "game_image/saki_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 12,
+      keisei_3: 12,
+      keisei_4: 20,
+      keisei_5: 4,
+      keisei_6: 4
+    },
+    color: "むらさき"
+  },
+  osamu: {
+    name: "文豪 統",
+    description: "思考と論理\n我在るのは思う為",
+    image: "game_image/osamu_full.jpg",
+    keisei: {
+      keisei_1: 4,
+      keisei_2: 12,
+      keisei_3: 12,
+      keisei_4: 12,
+      keisei_5: 20,
+      keisei_6: 4
+    },
+    color: "ブラウン"
+  },
+  tooru: {
+    name: "力業 透",
+    description: "剛腕と気合\n出来ないことなどない",
+    image: "game_image/tooru_full.jpg",
+    keisei: {
+      keisei_1: 12,
+      keisei_2: 4,
+      keisei_3: 4,
+      keisei_4: 12,
+      keisei_5: 12,
+      keisei_6: 20
+    },
+    color: "あか"
+  },
+};
+
 function selectMonster(monster) {
   if (!selectedGirl) {
     alert("先に少女を選んでね");
@@ -429,35 +618,6 @@ function selectMonster(monster) {
   updateMonsterStates();
 }
 
-const colorMap = {
-  "安全 真": "みどり",
-  "幼 ユリ": "オレンジ",
-  "目覚 崇": "あお",
-  "風下 咲": "むらさき",
-  "文豪 統": "ブラウン",
-  "力業 透": "あか"
-};
-
-const colorCSS = {
-  "みどり": "#2f9e44",
-  "オレンジ": "#e67700",
-  "あお": "#1c7ed6",
-  "むらさき": "#7048e8",
-  "ブラウン": "#8c4a1f",
-  "あか": "#c92a2a",
-  "くろ": "#1a1a1a"
-};
-
-const colorClassMap = {
-  "みどり": "color-green",
-  "オレンジ": "color-orange",
-  "あお": "color-blue",
-  "むらさき": "color-purple",
-  "ブラウン": "color-brown",
-  "あか": "color-red",
-  "くろ": "color-black"
-};
-
 let partners = [];
 
 function updatePartners() {
@@ -474,7 +634,6 @@ function updatePartners() {
       completeTimer: 0
     });
   }
-
   updateStatus();
 }
 
@@ -555,21 +714,6 @@ function confirmPartner() {
   updatePartners();
   showScreen("search");
 }
-
-const girlImages = {
-  "淋漓": "game_image/rinri.jpg",
-  "唯奈": "game_image/yuina.jpg",
-  "スミレ": "game_image/sumire.jpg"
-};
-
-const monsterImages = {
-  "安全 真": "game_image/makoto.jpg",
-  "幼 ユリ": "game_image/yuri.jpg",
-  "目覚 崇": "game_image/takashi.jpg",
-  "風下 咲": "game_image/saki.jpg",
-  "文豪 統": "game_image/osamu.jpg",
-  "力業 透": "game_image/tooru.jpg"
-};
 
 let currentScreen = "select";
 
@@ -684,16 +828,6 @@ function removePartner(partner) {
   updateStatus();
 }
 
-const colorBag = {
-  "みどり": 0,
-  "オレンジ": 0,
-  "あお": 0,
-  "むらさき": 0,
-  "ブラウン": 0,
-  "あか": 0,
-  "くろ": 0
-};
-
 function handleMainButton() {
   if (currentScreen === "select") {
     confirmPartner();
@@ -710,103 +844,6 @@ function attach(targetScreenId) {
   slot.appendChild(document.getElementById("colorPanel"));
 }
 
-  //ステータス設定資料
-  
-const keisei_LABELS = {
-  keisei_1: "凡",
-  keisei_2: "恋",
-  keisei_3: "異",
-  keisei_4: "卑",
-  keisei_5: "狂",
-  keisei_6: "熱"
-};
-
-const IKEI_STATUS = {
-  makoto: {
-    name: "安全 真",
-    description: "まじめで頑固\n例外や応用がわからない",
-    image: "game_image/makoto_full.jpg",
-    keisei: {
-      keisei_1: 20,
-      keisei_2: 4,
-      keisei_3: 4,
-      keisei_4: 12,
-      keisei_5: 12,
-      keisei_6: 12
-    },
-    color: "みどり"
-  },
-  yuri: {
-    name: "幼 ユリ",
-    description: "気分屋で惚れっぽい\nあなたがすべて",
-    image: "game_image/yuri_full.jpg",
-    keisei: {
-      keisei_1: 12,
-      keisei_2: 20,
-      keisei_3: 12,
-      keisei_4: 4,
-      keisei_5: 4,
-      keisei_6: 12
-    },
-    color: "オレンジ"
-  },
-  takashi: {
-    name: "目覚 崇",
-    description: "陽気な道化\n異端こそ生き甲斐",
-    image: "game_image/takashi_full.jpg",
-    keisei: {
-      keisei_1: 4,
-      keisei_2: 12,
-      keisei_3: 20,
-      keisei_4: 4,
-      keisei_5: 12,
-      keisei_6: 12
-    },
-    color: "あお"
-  },
-  saki: {
-    name: "風下 咲",
-    description: "臆病で親切\n不安に苛まれている",
-    image: "game_image/saki_full.jpg",
-    keisei: {
-      keisei_1: 12,
-      keisei_2: 12,
-      keisei_3: 12,
-      keisei_4: 20,
-      keisei_5: 4,
-      keisei_6: 4
-    },
-    color: "むらさき"
-  },
-  osamu: {
-    name: "文豪 統",
-    description: "思考と論理\n我在るのは思う為",
-    image: "game_image/osamu_full.jpg",
-    keisei: {
-      keisei_1: 4,
-      keisei_2: 12,
-      keisei_3: 12,
-      keisei_4: 12,
-      keisei_5: 20,
-      keisei_6: 4
-    },
-    color: "ブラウン"
-  },
-  tooru: {
-    name: "力業 透",
-    description: "剛腕と気合\n出来ないことなどない",
-    image: "game_image/tooru_full.jpg",
-    keisei: {
-      keisei_1: 12,
-      keisei_2: 4,
-      keisei_3: 4,
-      keisei_4: 12,
-      keisei_5: 12,
-      keisei_6: 20
-    },
-    color: "あか"
-  },
-};
 // ステータス大枠
 function renderStatusScreen() {
   const area = document.getElementById("statusList");
@@ -873,81 +910,4 @@ function createStatusCard(char, charId) {
   name.textContent = char.name;
 
   const desc = document.createElement("div");
-  desc.textContent = char.description;
-
-  header.appendChild(name);
-  header.appendChild(desc);
-
-  top.appendChild(img);
-  top.appendChild(header);
-
-  const bottom = document.createElement("div");
-  bottom.className = "status-bottom";
-
-  Object.entries(char.keisei).forEach(([key, value]) => {
-    const row = document.createElement("div");
-    row.className = "keisei-row";
-
-    const label = document.createElement("span");
-    label.className = "keisei-label";
-    label.textContent = keisei_LABELS[key];
-
-    const dotBox = document.createElement("div");
-    dotBox.className = "keisei-dot";
-
-    const colorClass = colorClassMap[char.color];
-    const count = keiseiDot(value);
-
-    for (let i = 0; i < count; i++) {
-      const orb = document.createElement("span");
-      orb.className = `color-orb ${colorClass}`;
-      dotBox.appendChild(orb);
-    }
-
-    const bar = document.createElement("div");
-    bar.className = "keisei-bar";
-
-    row.appendChild(label);
-    row.appendChild(dotBox);
-    row.appendChild(bar);
-    bottom.appendChild(row);
-  });
-
-  card.appendChild(top);
-  card.appendChild(bottom);
-
-  return card;
-}
-
-function selectTab(charId) {
-  activeStatusId = charId;
-
-  document.querySelectorAll(".status-card").forEach(card => {
-  card.style.display =
-  charId === "all" || card.dataset.charId === charId
-    ? "block"
-    : "none";
-});
-  
-  document.querySelectorAll("#statusTabs .color-orb").forEach(orb => {
-    orb.classList.toggle("active", orb.dataset.charId === charId);
-  });
-}
-
-let activeStatusId = "all";
-
-function keiseiDot(value) {
-  if (value >= 16) return 3;
-  if (value >= 8) return 2;
-  return 1;
-}
-
-</script>
-
-<footer id="pageFooter">
-  <img src="game_image/logo.png" alt="色彩UM ロゴ">
-</footer>
-
-</div>
-</body>
-</html>
+  desc.
