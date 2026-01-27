@@ -909,4 +909,210 @@ function renderStatusTabs() {
     orb.onclick = () => selectTab(id);
     orb.onclick = () => {
   selectTab(id);
-  showSingleStatu
+  showSingleStatus(id);
+};
+    tabs.appendChild(orb);
+  });
+}
+
+function showSingleStatus(charId) {
+  document.querySelectorAll(".status-card").forEach(card => {
+    card.style.display =
+      card.dataset.charId === charId ? "block" : "none";
+  });
+}
+// ステータス詳細
+function createStatusCard(char, charId) {
+  const card = document.createElement("div");
+  card.className = "status-card";
+  card.dataset.charId = charId;
+
+  const top = document.createElement("div");
+  top.className = "status-top";
+
+  const img = document.createElement("img");
+  img.src = char.image;
+  img.className = "status-image";
+
+  const header = document.createElement("div");
+  header.className = "status-header";
+
+  const name = document.createElement("strong");
+  name.className = "status-name";
+  name.textContent = char.name;
+
+  const desc = document.createElement("div");
+  desc.textContent = char.description;
+
+  header.appendChild(name);
+  header.appendChild(desc);
+
+  top.appendChild(img);
+  top.appendChild(header);
+
+  const bottom = document.createElement("div");
+  bottom.className = "status-bottom";
+
+  Object.entries(char.keisei).forEach(([key, value]) => {
+    const row = document.createElement("div");
+    row.className = "keisei-row";
+
+    const label = document.createElement("span");
+    label.className = "keisei-label";
+    label.textContent = keisei_LABELS[key];
+
+    const dotBox = document.createElement("div");
+    dotBox.className = "keisei-dot";
+
+    const colorClass = colorClassMap[char.color];
+    const count = keiseiDot(value);
+
+    for (let i = 0; i < count; i++) {
+      const orb = document.createElement("span");
+      orb.className = `color-orb ${colorClass}`;
+      dotBox.appendChild(orb);
+    }
+
+    const bar = document.createElement("div");
+    bar.className = "keisei-bar";
+
+    row.appendChild(label);
+    row.appendChild(dotBox);
+    row.appendChild(bar);
+    bottom.appendChild(row);
+  });
+
+  card.appendChild(top);
+  card.appendChild(bottom);
+
+  return card;
+}
+
+function selectTab(charId) {
+  activeStatusId = charId;
+
+  document.querySelectorAll(".status-card").forEach(card => {
+  card.style.display =
+  charId === "all" || card.dataset.charId === charId
+    ? "block"
+    : "none";
+});
+  
+  document.querySelectorAll("#statusTabs .color-orb").forEach(orb => {
+    orb.classList.toggle("active", orb.dataset.charId === charId);
+  });
+}
+
+let activeStatusId = "all";
+
+function keiseiDot(value) {
+  if (value >= 16) return 3;
+  if (value >= 8) return 2;
+  return 1;
+}
+
+const KUNNAN_HP = [30,40,50,60,70,80,90,100,120,150];
+
+const stageDropdown = document.getElementById("stageDropdown");
+const kunnans = document.getElementById("kunnanSelect");
+const buttonsArea = document.getElementById("kunnanButtons");
+
+stageDropdown.addEventListener("change", () => {
+  const stage = stageDropdown.value;
+
+  if (!stage) {
+    kunnans.style.display = "none";
+    return;
+  }
+  renderKunnans(stage);
+  kunnans.style.display = "block";
+  buttonsArea.style.display = "grid";
+});
+
+function renderKunnans(stage) {
+  buttonsArea.innerHTML = "";
+
+  KUNNAN_HP.forEach((hp, index) => {
+    const btn = document.createElement("button");
+    btn.className = "kunnan-btn";
+    btn.textContent = `${index + 1}`;
+
+    btn.onclick = () => {
+  setActiveButton(btn);
+  startBattle(stage, hp);
+};
+    buttonsArea.appendChild(btn);
+  });
+}
+
+function setActiveButton(activeBtn) {
+  document.querySelectorAll(".kunnan-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  activeBtn.classList.add("active");
+}
+
+function startBattle(stage, hp) {
+  document.getElementById("stageSelect").style.display = "none";
+  document.getElementById("kunnanButtons").style.display = "none";
+  document.getElementById("battleArea").style.display = "block";
+  
+  const kunnanBody = document.querySelector(".kunnan-body");
+  const maskCanvas = createCorruptMask();
+  const maskURL = maskCanvas.toDataURL();
+
+  kunnanBody.style.backgroundColor = "#2f6ed9";
+  kunnanBody.style.maskImage = `url(${maskURL})`;
+  kunnanBody.style.webkitMaskImage = `url(${maskURL})`;
+  kunnanBody.style.maskRepeat = "no-repeat";
+  kunnanBody.style.webkitMaskRepeat = "no-repeat";
+  kunnanBody.style.maskSize = "cover";
+  kunnanBody.style.webkitMaskSize = "cover";
+  kunnanBody.textContent = `HP ${hp}`;
+
+  console.log(`ステージ${stage} 苦難HP:${hp}`);
+}
+
+function escapeBattle() {
+  document.getElementById("battleArea").style.display = "none";
+  document.getElementById("stageSelect").style.display = "block";
+  document.getElementById("kunnanSelect").style.display = "none";
+  document.getElementById("kunnanButtons").style.display = "block";
+
+  stageDropdown.value = "";
+
+  document.getElementById("kunnanButtons").innerHTML = "";
+}
+
+function createCorruptMask(size = 200) {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "black";
+
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size*0.35, 0, Math.PI*2);
+  ctx.fill();
+
+  for (let i = 0; i < 20; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = size * (0.25 + Math.random() * 0.2);
+
+    const x = size/2 + Math.cos(angle) * radius;
+    const y = size/2 + Math.sin(angle) * radius;
+    const r = size * (0.05 + Math.random() * 0.08);
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  return canvas;
+}
+
+</script>
+
+<footer id="pageFooter"><img src="game_image/logo.png" alt="色彩UM ロゴ"></footer>
+
+</div> </body> </html>
