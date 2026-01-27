@@ -11,20 +11,17 @@
 
 <style>
 
-@media (min-width: 1024px) {
-  #app {
-    transform: scale(2);
-    transform-origin: top center;}}
+@media (min-width: 1024px) { #app { transform: scale(2); transform-origin: top center;}}
 
 #app { width: 320px; margin: 0 auto;}
-body { font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #f5f5f5; }
+body { font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #e0e6ef; min-height: 100vh;
+  background: linear-gradient( 180deg, #aebdd4 0%, #e0e6ef 70%, #F3F5F9 100%
+  );background-repeat: no-repeat;}
 h2 { margin-top: 20px; }
 button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f9f9; opacity: 0.8;}
 #partnerStatus, #colorStatus { margin-top: 10px; }
 .colorDisplay { display: inline-block; width: 20px; height: 20px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
-.m-plus-rounded-1c-bold {  font-family: "M PLUS Rounded 1c", sans-serif;
-  font-weight: 500;
-  font-style: normal;}
+.m-plus-rounded-1c-bold {  font-family: "M PLUS Rounded 1c", sans-serif; font-weight: 500; font-style: normal;}
 .status-header div {  white-space: pre-line;}
 
 /* アイコン */
@@ -126,7 +123,6 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   border-radius: 10px;
   background: #F3E9E3;
   box-shadow: 6px 6px 0 #B69782;
-
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -354,10 +350,10 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 }
 
 #kunnanButtons {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-top: 10px;
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 10px;
+margin-top: 10px;
 }
 
 /* ドッスン風 苦難ボタン */
@@ -373,8 +369,38 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   cursor: pointer;
 }
 
-.kunnan-btn:hover {
-  background: #b0b0b0;
+.kunnan-btn.active {
+  background: #d0d0d0;
+  border: 4px solid #9a9a9a;
+}
+
+/* 苦難 */
+#kunnan {
+  width: 250px;
+  height: 200px;
+  margin: 40px auto;
+}
+
+.kunnan-body {
+  width: 250px;
+  height: 200px;
+  margin: 20px auto;
+  border-radius: 40%;
+  background: #2f6ed9; /* 仮：青 */
+  box-shadow:
+    inset -8px -8px 0 rgba(0,0,0,0.2),
+    inset 8px 8px 0 rgba(255,255,255,0.2);
+}
+
+#escapeBattle {
+  display: block;
+  margin: 20px auto;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 3px solid #666;
+  background: #ddd;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 </style> </head> <body> <div id="app">
@@ -440,8 +466,15 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 
 <!-- 苦難選択 -->
 <div id="kunnanSelect" style="display:none;">
-  <h3>苦難を選択</h3>
-  <div id="kunnanButtons"></div></div></div>
+  <h2>苦難を選択</h2>
+  <div id="kunnanButtons"></div></div>
+  
+<!-- バトルエリア -->
+<div id="battleArea" style="display:none;">
+  <h2>苦難を乗り越える</h2>
+  <div id="kunnan"><div class="kunnan-body color-blue"></div></div>
+  <button id="escapeBattle" onclick="escapeBattle()">逃げる</button>
+</div></div>
 
 <!-- 色彩（画面部品） -->
 <div id="colorPanel">
@@ -452,8 +485,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   <div id="bag"></div>
 
   <h2>倉庫</h2>
-  <div id="warehouse"></div></div>
-</div> <script>
+  <div id="warehouse"></div></div><script>
 
 const colorMap = {
   "安全 真": "みどり",
@@ -877,37 +909,4 @@ function renderStatusTabs() {
     orb.onclick = () => selectTab(id);
     orb.onclick = () => {
   selectTab(id);
-  showSingleStatus(id);
-};
-    tabs.appendChild(orb);
-  });
-}
-
-function showSingleStatus(charId) {
-  document.querySelectorAll(".status-card").forEach(card => {
-    card.style.display =
-      card.dataset.charId === charId ? "block" : "none";
-  });
-}
-// ステータス詳細
-function createStatusCard(char, charId) {
-  const card = document.createElement("div");
-  card.className = "status-card";
-  card.dataset.charId = charId;
-
-  const top = document.createElement("div");
-  top.className = "status-top";
-
-  const img = document.createElement("img");
-  img.src = char.image;
-  img.className = "status-image";
-
-  const header = document.createElement("div");
-  header.className = "status-header";
-
-  const name = document.createElement("strong");
-  name.className = "status-name";
-  name.textContent = char.name;
-
-  const desc = document.createElement("div");
-  desc.
+  showSingleStatu
