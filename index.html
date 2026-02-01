@@ -778,6 +778,11 @@ let currentEnemy = {
   hp: 100
 };
 
+let lastBattle = {
+  stage: null,
+  hp: null
+};
+
 function selectMonster(monster) {
   if (!selectedGirl) {
     alert("先に少女を選んでね");
@@ -1197,6 +1202,9 @@ function startBattle(stage, hp) {
   document.getElementById("stageSelect").style.display = "none";
   document.getElementById("kunnanSelect").style.display = "none";
   document.getElementById("battleArea").style.display = "block";
+  
+  lastBattle.stage = stage;
+  lastBattle.hp = hp;
 
   currentEnemy.maxHp = hp;
   currentEnemy.hp = hp;
@@ -1354,7 +1362,15 @@ function fightOnce() {
 
 function fightAgain() {
   closeBattleResult();
-  document.getElementById("kunnanSelect").style.display = "block";
+
+  if (!lastBattle.hp) {
+    // 保険：何も記録がなければ苦難選択へ
+    document.getElementById("kunnanSelect").style.display = "block";
+    return;
+  }
+
+  // 同じ強さで再戦（＝苦難を再抽選）
+  startBattle(lastBattle.stage, lastBattle.hp);
 }
 
 document.querySelectorAll(".fight-button").forEach(btn => {
