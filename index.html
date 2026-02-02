@@ -12,7 +12,6 @@
 <style>
 
 @media (min-width: 1024px) { #app { transform: scale(2); transform-origin: top center;}}
-
 #app { width: 320px; margin: 0 auto;}
 body { font-family: "M PLUS Rounded 1c", sans-serif;font-size: 12px; padding: 20px; background: #e0e6ef; min-height: 100vh;
   background: linear-gradient( 180deg, #aebdd4 0%, #e0e6ef 70%, #F3F5F9 100%
@@ -377,15 +376,15 @@ margin-top: 10px;
 /* 苦難 */
 #kunnan {
   width: 250px;
-  height: 200px;
-  margin: 40px auto;
+  height: 180px;
+  margin: 10px auto;
 }
 
 .kunnan-body {
   position: relative;
   width: 250px;
-  height: 200px;
-  margin: 40px auto;
+  height: 180px;
+  margin: 10px auto;
 }
 
 .kunnan-main,
@@ -397,14 +396,14 @@ margin-top: 10px;
 .kunnan-main {
   z-index: 1;
   width: 250px;
-  height: 200px;
+  height: 180px;
   background-color: var(--main-color);
 }
 
 .kunnan-sub {
   z-index: 2;
   width: 250px;
-  height: 200px;
+  height: 180px;
   background-color: var(--sub-color);
 }
 
@@ -486,7 +485,51 @@ margin-top: 10px;
   width: 45%;
 }
 
-</style> </head> <body> <div id="app">
+.battle-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+}
+
+.battle-attack-label {
+  margin-bottom: 8px;
+  font-size: 1.5em;
+}
+
+.battle-partners {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px auto 50px auto;
+}
+
+/* 戦闘中の異型アイコン */
+.battle-partner-icon {
+  transition: transform 0.12s ease-out;
+  cursor: pointer;
+}
+
+/* 押されたとき */
+.battle-partner-icon.attack {
+  transform: translateY(-6px);
+}
+
+.battle-partner {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* アイコン基準で中央 */
+}
+
+.battle-partner-stats {
+  margin-top: 4px;
+  font-size: 1em;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+</style> </head>
+<body> <div id="app">
 
 <div id="topButtons">
   <button onclick="showScreen('select')">パートナー</button>
@@ -502,13 +545,13 @@ margin-top: 10px;
  <img src="game_image/yuina.jpg" class="icon-image girl-icon" data-girl="唯奈"></div>
 <div class="icon-wrapper" data-girl="スミレ"><img src="game_image/sumire.jpg" class="icon-image girl-icon" data-girl="スミレ"></div>
 
-<h2>異型を選択</h2>
-<div class="icon-wrapper" data-monster="安全 真"><img src="game_image/makoto.jpg" class="icon-image monster-icon" data-monster="安全 真"></div>
-<div class="icon-wrapper" data-monster="幼 ユリ"><img src="game_image/yuri.jpg" class="icon-image monster-icon" data-monster="幼 ユリ"></div>
-<div class="icon-wrapper" data-monster="目覚 崇"><img src="game_image/takashi.jpg" class="icon-image monster-icon" data-monster="目覚 崇"></div>
-<div class="icon-wrapper" data-monster="風下 咲"><img src="game_image/saki.jpg" class="icon-image monster-icon" data-monster="風下 咲"></div>
-<div class="icon-wrapper" data-monster="文豪 統"><img src="game_image/osamu.jpg" class="icon-image monster-icon" data-monster="文豪 統"></div>
-<div class="icon-wrapper" data-monster="力業 透"><img src="game_image/tooru.jpg" class="icon-image monster-icon" data-monster="力業 透"></div>
+<h2>この少女のパートナーを選んでね</h2>
+<div class="icon-wrapper" data-monster-id="makoto"><img src="game_image/makoto.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="yuri"><img src="game_image/yuri.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="takashi"><img src="game_image/takashi.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="saki"><img src="game_image/saki.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="osamu"><img src="game_image/osamu.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="tooru"><img src="game_image/tooru.jpg" class="icon-image monster-icon"></div>
 <h2>3組選んだら...</h2>
 <p><button id="mainButton" onclick="handleMainButton()">パートナー選択</button></p></div>
 
@@ -527,7 +570,7 @@ margin-top: 10px;
 <div id="statusList"></div></div>
 
 <!-- 戦闘画面 -->
-<div id="battleScreen" style="display:none;"><h2>戦闘画面</h2>
+<div id="battleScreen" style="display:none;"><br>
 
 <!-- ステージ選択 -->
 <div id="stageSelect">
@@ -563,21 +606,24 @@ margin-top: 10px;
   <!-- 敵HP -->
   <div id="enemyStatus">
   <div class="enemy-hp-label">苦難</div>
-
   <div class="enemy-hp-bar">
     <div class="enemy-hp-fill"></div>
   </div>
-
-  <!-- 追加 -->
   <div class="enemy-hp-text"></div>
 </div>
 
+  <!-- 行動エリア -->
+<div class="battle-actions">
+  <div class="battle-attack-label">戦う</div>
 
-  <!-- 行動ボタン -->
-  <div class="battle-actions">
-    <button class="fight-button">戦う</button>
-    <button class="escape-button">逃げる</button>
+  <!-- 新しい戦うボタン（パートナー） -->
+  <div class="battle-partners">
+    <!-- JSで中身を生成 -->
   </div>
+
+  <button class="escape-button">逃げる</button>
+</div>
+
 </div>
 
 <!-- 勝利画面 -->
@@ -601,9 +647,7 @@ margin-top: 10px;
 
 <!-- 色彩（画面部品） -->
 <div id="colorPanel">
-  <h2>獲得色彩</h2>
   <div id="colorStatus"></div>
-
   <h2>色彩バッグ</h2>
   <div id="bag"></div>
 
@@ -619,7 +663,8 @@ const colorMap = {
   "風下 咲": "むらさき",
   "文豪 統": "ブラウン",
   "力業 透": "あか"
-};
+};//色整理-NAME
+
 const colorCSS = {
   "みどり": "#2f9e44",
   "オレンジ": "#e67700",
@@ -628,7 +673,8 @@ const colorCSS = {
   "ブラウン": "#8c4a1f",
   "あか": "#c92a2a",
   "くろ": "#1a1a1a"
-};
+};//色整理-NAME→HEX
+
 const colorClassMap = {
   "みどり": "color-green",
   "オレンジ": "color-orange",
@@ -637,20 +683,22 @@ const colorClassMap = {
   "ブラウン": "color-brown",
   "あか": "color-red",
   "くろ": "color-black"
-};
+};//色整理-NAME→CLASS
+
 const girlImages = {
   "淋漓": "game_image/rinri.jpg",
   "唯奈": "game_image/yuina.jpg",
   "スミレ": "game_image/sumire.jpg"
 };
 const monsterImages = {
-  "安全 真": "game_image/makoto.jpg",
-  "幼 ユリ": "game_image/yuri.jpg",
-  "目覚 崇": "game_image/takashi.jpg",
-  "風下 咲": "game_image/saki.jpg",
-  "文豪 統": "game_image/osamu.jpg",
-  "力業 透": "game_image/tooru.jpg"
+  makoto: "game_image/makoto.jpg",
+  yuri: "game_image/yuri.jpg",
+  takashi: "game_image/takashi.jpg",
+  saki: "game_image/saki.jpg",
+  osamu: "game_image/osamu.jpg",
+  tooru: "game_image/tooru.jpg"
 };
+
 const colorBag = {
   "みどり": 0,
   "オレンジ": 0,
@@ -660,8 +708,8 @@ const colorBag = {
   "あか": 0,
   "くろ": 0
 };
-//ステータス設定資料
-  const keisei_LABELS = {
+
+const keisei_LABELS = {
   keisei_1: "凡",
   keisei_2: "恋",
   keisei_3: "異",
@@ -755,7 +803,7 @@ const IKEI_STATUS = {
     },
     color: "あか"
   },
-};
+};//色整理-NAME
 
 const COLOR_CLASSES = [
   "color-red",
@@ -765,13 +813,38 @@ const COLOR_CLASSES = [
   "color-purple",
   "color-brown",
   "color-black"
-];
+];//色整理-CLASS
 
 const KUNNAN_HP = [30,40,50,60,70,80,90,100,120,150];
 
 const PROGRESS_STEP = 25;
 const TICK_INTERVAL = 500;
-const COLOR_POOL = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];
+const COLOR_POOL = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];//色整理-NAME-LISTと統合するかも
+
+const GIRL_ORDER = ["淋漓", "唯奈", "スミレ"];
+
+// ② 次に対応表を定義
+const COLOR_TO_KEISEI = {
+  red: "keisei_6",     // 熱
+  blue: "keisei_3",    // 異
+  green: "keisei_1",   // 凡
+  orange: "keisei_2",  // 恋
+  purple: "keisei_4",  // 卑
+  brown: "keisei_5"    // 狂
+};//色整理-KEISEI //色整理-ID
+
+const COLOR_IDS = ["red", "blue", "green", "orange", "purple", "brown"];//色整理-ID
+
+const KUNNAN_COLOR_HEX = {
+  red: "#c92a2a",
+  green: "#2f9e44",
+  blue: "#1c7ed6",
+  orange: "#e67700",
+  purple: "#7048e8",
+  brown: "#8c4a1f"
+};//色整理-ID //色整理-HEX
+
+let currentGirlIndex = 0;
 
 let currentEnemy = {
   maxHp: 100,
@@ -783,34 +856,56 @@ let lastBattle = {
   hp: null
 };
 
-function selectMonster(monster) {
-  if (!selectedGirl) {
-    alert("先に少女を選んでね");
-    return;
-  }
+let partners = [];
 
-  if (Object.values(selectedPairs).includes(monster)) {
+setInterval(tick, TICK_INTERVAL);
+
+let selectedGirl = null;
+let selectedPairs = {};
+
+let currentKunnan = {
+  mainColor: null,
+  subColor: null,
+  hp: 0,
+  maxHp: 0
+};//色整理-KEISEI //色整理-ID
+
+let currentScreen = "select";
+
+function selectMonster(monsterId) {
+  if (!selectedGirl) return;
+
+  if (Object.values(selectedPairs).includes(monsterId)) {
     alert("その異型は他の少女とパートナーだよ");
     return;
   }
+  selectedPairs[selectedGirl] = monsterId;
 
-  selectedPairs[selectedGirl] = monster;
-  selectedGirl = null;
+  if (Object.keys(selectedPairs).length === GIRL_ORDER.length) {
+    selectedGirl = null;
+    updateGirlStates();
+    updateMonsterStates();
+    return;
+  }
+  do {
+    currentGirlIndex = (currentGirlIndex + 1) % GIRL_ORDER.length;
+    selectedGirl = GIRL_ORDER[currentGirlIndex];
+  } while (selectedPairs[selectedGirl]);
 
   updateGirlStates();
   updateMonsterStates();
 }
 
-let partners = [];
-
 function updatePartners() {
   partners = [];
 
   for (let girl in selectedPairs) {
-    const monster = selectedPairs[girl];
+    const monsterId = selectedPairs[girl];
+
     partners.push({
       girl,
-      monster,
+      monsterId, // ← 内部ID
+      monsterName: IKEI_STATUS[monsterId].name, // ← 表示名
       progress: 0,
       speed: 1,
       isComplete: false,
@@ -835,13 +930,16 @@ function updateGirlStates() {
 }
 
 function updateMonsterStates() {
-  document.querySelectorAll('.icon-wrapper[data-monster]').forEach(el => {
-    const monster = el.dataset.monster;
-    el.classList.toggle(
-      "used",
-      Object.values(selectedPairs).includes(monster)
-    );
-  });
+  document
+    .querySelectorAll('.icon-wrapper[data-monster-id]')
+    .forEach(el => {
+      const monsterId = el.dataset.monsterId;
+
+      el.classList.toggle(
+        "used",
+        Object.values(selectedPairs).includes(monsterId)
+      );
+    });
 }
 
 function updateStatus() {
@@ -862,7 +960,7 @@ function tick() {
       partner.completeTimer--;
 
       if (partner.completeTimer <= 0) {
-        const colorsList = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];
+        const colorsList = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];//色整理-NAME-POOLに統合するかも
         const color = colorsList[Math.floor(Math.random() * colorsList.length)];
         colorBag[color]++;
         renderColorBag();
@@ -884,21 +982,15 @@ function tick() {
   updateStatus();
 }
 
-setInterval(tick, 500);
-
-let selectedGirl = null;
-let selectedPairs = {};
-
 function selectGirl(girl) {
   selectedGirl = girl;
   updateGirlStates();
 }
+
 function confirmPartner() {
   updatePartners();
   showScreen("search");
 }
-
-let currentScreen = "select";
 
 function showScreen(screenName) {
   const screens = ["select", "search", "status" ,"battle"];
@@ -913,6 +1005,12 @@ function showScreen(screenName) {
   document.getElementById("colorPanel").style.display =
     showColor ? "block" : "none";
     
+    if (screenName === "select") {
+  currentGirlIndex = 0;
+  selectedGirl = GIRL_ORDER[currentGirlIndex];
+  updateGirlStates();
+}
+
    if (screenName === "status") {
     renderStatusTabs();
     renderStatusScreen();
@@ -925,17 +1023,14 @@ function createPartnerFrame(partner) {
   const row = document.createElement("div");
   row.className = "partner-row";
 
-  // 少女アイコン
   const girlImg = document.createElement("img");
   girlImg.src = girlImages[partner.girl];
   girlImg.className = "icon-small";
 
-  // 異型アイコン
   const monsterImg = document.createElement("img");
-  monsterImg.src = monsterImages[partner.monster];
+  monsterImg.src = monsterImages[partner.monsterId];
   monsterImg.className = "icon-small";
 
-  // ゲージ
   const gauge = document.createElement("div");
   gauge.className = "gauge";
 
@@ -1175,9 +1270,6 @@ stageDropdown.addEventListener("change", () => {
 function renderKunnans(stage) {
   buttonsArea.innerHTML = "";
 
-  const { mainColor, subColor } = pickMainAndSubColors();
-  console.log("picked colors:", mainColor, subColor);
-
   KUNNAN_HP.forEach((hp, index) => {
     const btn = document.createElement("button");
     btn.className = "kunnan-btn";
@@ -1199,6 +1291,26 @@ function setActiveButton(activeBtn) {
 }
 
 function startBattle(stage, hp) {
+
+  const { mainColor, subColor } = pickMainAndSubColors();
+  
+  currentKunnan.mainColor = mainColor;
+  currentKunnan.subColor  = subColor;
+  
+  const main = document.querySelector(".kunnan-main");
+  const sub  = document.querySelector(".kunnan-sub");
+  
+  main.style.setProperty(
+  "--main-color",
+  KUNNAN_COLOR_HEX[mainColor]
+);
+  sub.style.setProperty(
+  "--sub-color",
+  KUNNAN_COLOR_HEX[subColor]
+);//色整理-HEX
+
+  renderBattlePartners();
+  
   document.getElementById("stageSelect").style.display = "none";
   document.getElementById("kunnanSelect").style.display = "none";
   document.getElementById("battleArea").style.display = "block";
@@ -1209,14 +1321,9 @@ function startBattle(stage, hp) {
   currentEnemy.maxHp = hp;
   currentEnemy.hp = hp;
   renderEnemyHp();
-
-  const { mainColor, subColor } = pickMainAndSubColors();
-
-  const main = document.querySelector(".kunnan-main");
-  const sub  = document.querySelector(".kunnan-sub");
-
-  main.style.setProperty("--main-color", mainColor);
-  sub.style.setProperty("--sub-color", subColor);
+  
+  currentKunnan.maxHp = hp;
+  currentKunnan.hp = hp;
   
   const mainMask = createMainMask();
   const subMask  = createSubMask();
@@ -1281,7 +1388,6 @@ function createMainMask(size = 200) {
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
-
   return canvas;
 }
 
@@ -1309,16 +1415,15 @@ function createSubMask(size = 200) {
 }
 
 function pickMainAndSubColors() {
-  const colors = [
-    "#d92d2d", "#2f6ed9", "#3ea35c",
-    "#e48a1f", "#7a4bd9", "#8b4a2f"
-  ];
-  const mainColor = colors[Math.floor(Math.random() * colors.length)];
+  const mainColor = COLOR_IDS[Math.floor(Math.random() * COLOR_IDS.length)];
   let subColor;
-  do { subColor = colors[Math.floor(Math.random() * colors.length)];
+
+  do {
+    subColor = COLOR_IDS[Math.floor(Math.random() * COLOR_IDS.length)];
   } while (subColor === mainColor);
+
   return { mainColor, subColor };
-}
+}//色整理-ID
 
 document.querySelectorAll(".girl-icon").forEach(img => {
   img.addEventListener("click", () => {
@@ -1328,9 +1433,11 @@ document.querySelectorAll(".girl-icon").forEach(img => {
 });
 
 document.querySelectorAll(".monster-icon").forEach(img => {
-  img.addEventListener("click", () => {
-    const monster = img.dataset.monster;
-    selectMonster(monster);
+  img.addEventListener("click", (e) => {
+    const monsterId =
+      e.currentTarget.closest(".icon-wrapper").dataset.monsterId;
+
+    selectMonster(monsterId);
   });
 });
 
@@ -1342,34 +1449,60 @@ function renderEnemyHp() {
   const ratio = currentEnemy.hp / currentEnemy.maxHp;
   fill.style.width = `${Math.max(0, ratio * 100)}%`;
 
-  // 追加
   text.textContent = `${currentEnemy.hp} / ${currentEnemy.maxHp}`;
 }
 
-function fightOnce() {
-  // 仮ダメージ：あとで傾性に置き換える
-  const damage = 10;
+function consumeBattleColor() {
+  const colorId = currentKunnan.mainColor;
 
-  currentEnemy.hp -= damage;
-  if (currentEnemy.hp <= 0) {
-    currentEnemy.hp = 0;
-    renderEnemyHp();
-  showBattleResult();
+  // 付箋的const（ここだけで使う）
+  const colorNameMap = {
+    red: "あか",
+    blue: "あお",
+    green: "みどり",
+    orange: "オレンジ",
+    purple: "むらさき",
+    brown: "ブラウン"
+  };
+
+  const colorName = colorNameMap[colorId];
+  if (!colorName) return false;
+
+  if (colorBag[colorName] > 0) {
+    colorBag[colorName]--;
+    renderColorBag();
+    return true;   // 攻撃成立
+  }
+  return false;    // 色不足＝空振り
+}
+
+function fightOnce(monsterId) {
+  const attackColor = currentKunnan.mainColor; // 例
+  const canAttack = consumeBattleColor(attackColor);
+
+  if (!canAttack) {
+    animateMiss();
     return;
   }
+
+  const damage = calcAttackPower(monsterId);
+  currentEnemy.hp -= damage;
+  if (currentEnemy.hp < 0) currentEnemy.hp = 0;
+
   renderEnemyHp();
+
+  if (currentEnemy.hp === 0) {
+    showBattleResult();
+  }
 }
 
 function fightAgain() {
   closeBattleResult();
 
   if (!lastBattle.hp) {
-    // 保険：何も記録がなければ苦難選択へ
     document.getElementById("kunnanSelect").style.display = "block";
     return;
   }
-
-  // 同じ強さで再戦（＝苦難を再抽選）
   startBattle(lastBattle.stage, lastBattle.hp);
 }
 
@@ -1384,6 +1517,108 @@ document.querySelectorAll(".fight-again-button").forEach(btn => {
 function closeBattleResult() {
   document.getElementById("battleResult").style.display = "none";
 }
+
+function renderBattlePartners() {
+  const area = document.querySelector(".battle-partners");
+  if (!area) return;
+
+  area.innerHTML = "";
+
+  partners.forEach(partner => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "battle-partner";
+
+    const img = document.createElement("img");
+    img.src = monsterImages[partner.monsterId];
+    img.dataset.monsterId = partner.monsterId;
+    img.className = "icon-image battle-partner-icon";
+
+    img.addEventListener("click", () => {
+      animateAttack(img);
+      fightOnce(partner.monsterId);
+    });
+    const stats = document.createElement("div");
+    stats.className = "battle-partner-stats";
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(stats);
+    area.appendChild(wrapper);
+    renderBattlePartnerStats(wrapper, partner.monsterId);
+  });
+}
+
+function renderBattlePartnerStats(wrapper, monsterId) {
+  
+  const statsArea = wrapper.querySelector(".battle-partner-stats");
+  if (!statsArea) return;
+
+  const char = IKEI_STATUS[monsterId];
+  if (!char) return;
+
+  const keiseiA = COLOR_TO_KEISEI[currentKunnan.mainColor];
+  const keiseiB = COLOR_TO_KEISEI[currentKunnan.subColor];
+
+  const labelA = keisei_LABELS[keiseiA];
+  const labelB = keisei_LABELS[keiseiB];
+
+  const valueA = char.keisei[keiseiA] ?? 0;
+  const valueB = char.keisei[keiseiB] ?? 0;
+
+  statsArea.innerHTML = `
+    <div>${labelA} : ${valueA}</div>
+    <div>${labelB} : ${valueB}</div>
+  `;
+}//色整理-KEISEI //色整理-ID
+
+function animateAttack(icon) {
+  icon.classList.add("attack");
+
+  setTimeout(() => {
+    icon.classList.remove("attack");
+  }, 150);
+}
+
+function startPartnerSelection(startGirl) {
+  currentGirlIndex = GIRL_ORDER.indexOf(startGirl);
+  selectedGirl = startGirl;
+  updateGirlStates();
+}
+
+function calcAttackPower(monsterId) {
+  const char = IKEI_STATUS[monsterId];
+
+  if (!char) return 0;
+
+  const keiseiA = COLOR_TO_KEISEI[currentKunnan.mainColor];
+  const keiseiB = COLOR_TO_KEISEI[currentKunnan.subColor];
+
+  const valueA = char.keisei[keiseiA] ?? 0;
+  const valueB = char.keisei[keiseiB] ?? 0;
+  return Math.max(valueA, valueB);
+}//色整理-KEISEI //色整理-ID
+
+function consumeBattleColor() {
+  // 苦難の色ID → 色名(NAME)に変換
+  const colorId = currentKunnan.mainColor;
+  const colorNameMap = {
+    red: "あか",
+    blue: "あお",
+    green: "みどり",
+    orange: "オレンジ",
+    purple: "むらさき",
+    brown: "ブラウン"
+  };
+  const colorName = colorNameMap[colorId];
+  if (!colorName) return;
+
+  if (colorBag[colorName] <= 0) {
+    return false; // 消費できなかった
+  }
+  colorBag[colorName]--;
+  renderColorBag();
+  return true; // 消費成功
+}
+
 
 </script>
 
