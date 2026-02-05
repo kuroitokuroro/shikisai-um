@@ -327,13 +327,12 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 .status-CheckArea {
   width: 3em;
   height: 3em;
-  background: #e0f;
 }
 
 .status-kikkake-list {
-  width: 3em;
-  height: 3em;
-  background: #70f;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 #statusTabs {
@@ -488,9 +487,10 @@ margin-top: 10px;
 }
 
 .result-box {
-  width: 160px;
+  width: 250px;
   height: 60px;
-  margin: 0 auto;
+  margin: 5px auto;
+  padding: 5px;
   border: 2px solid #111;
   border-radius: 8px;
   background: #f5f5f5;
@@ -514,7 +514,7 @@ margin-top: 10px;
 }
 
 .battle-attack-label {
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   font-size: 1.5em;
 }
 
@@ -547,6 +547,57 @@ margin-top: 10px;
   font-size: 1em;
   line-height: 1.4;
   opacity: 0.85;
+}
+
+.check-svg path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 0;
+}
+
+.check-svg.redraw path {
+  stroke-dashoffset: 40;
+  animation: redraw-check 0.4s ease-out forwards;
+}
+
+@keyframes redraw-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.status-CheckArea {
+  width: 3em;
+  height: 3em;
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.kikkake-popup {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 15rem;
+
+  background: #f5f5f5;
+  border: 2px solid #8095AE;
+  border-radius: 6px;
+  padding: 6px 8px;
+
+  font-size: 0.7rem;
+  display: none;
+  z-index: 10;
+}
+
+.status-CheckArea.show-popup .kikkake-popup {
+  display: block;
+}
+
+.kikkake-item {
+  margin: 2px 0;
 }
 
 </style> </head>
@@ -591,7 +642,7 @@ margin-top: 10px;
 <div id="statusList"></div></div>
 
 <!-- 戦闘画面 -->
-<div id="battleScreen" style="display:none;"><br>
+<div id="battleScreen" style="display:none;">
 
 <!-- ステージ選択 -->
 <div id="stageSelect">
@@ -648,9 +699,9 @@ margin-top: 10px;
   <h2>苦難を乗り越えた</h2>
 
   <div class="result-item">
-    <div class="result-label">獲得したアイテム</div>
+    <div class="result-label">獲得したきっかけ</div>
     <div class="result-box">
-      <!-- 今は空欄 -->
+      <div id="kikkakeResult"></div>
     </div>
   </div>
 
@@ -896,7 +947,39 @@ const COLOR_BY_KEISEI = Object.fromEntries(
     .map(([id, c]) => [c.keisei, id])
 );
 
+// 異形ID → 所持きっかけ配列
+const KIKKAKE_INVENTORY = {
+  makoto: [],
+  yuri: [],
+  takashi: [],
+  saki: [],
+  osamu: [],
+  tooru: []
+};
+
+// 直近のドロップ結果（リザルト表示用）
+let LAST_DROPPED_KIKKAKE = null;
+
+const ALPHABET = [
+  "Ａ","Ｂ","Ｃ","Ｄ","Ｅ","Ｆ","Ｇ","Ｈ","Ｊ","Ｋ","Ｌ","Ｍ",
+  "Ｎ","Ｐ","Ｑ","Ｒ","Ｓ","Ｔ","Ｕ","Ｖ","Ｗ","Ｘ","Ｙ","Ｚ",
+  "ｂ","ｃ","ｄ","ｆ","ｇ","ｈ","ｋ","ｍ","ｎ","ｐ","ｑ","ｒ","ｓ","ｔ","ｖ","ｘ","ｙ","ｚ"
+];
+
+const SYMBOL_OR_NUMBER = [
+  "０","１","２","３","４","５","６","７","８","９",
+  "／","＋","）","＜","＝","＊","＃","％","＠","＆","￥","：","＾"
+];
+
+const HIRAGANA = [
+  "あ","も","ふ","や","る","せ","ん","そ","む"
+];
+
 let currentGirlIndex = 0;
+
+// 直前の戦闘で起きた「出来事」
+// リザルト画面はこれしか見ない
+let LAST_BATTLE_EVENT = null;
 
 let currentEnemy = {
   maxHp: 100,
@@ -1217,10 +1300,8 @@ function renderStatusScreen() {
   area.innerHTML = "";
   
   Object.entries(IKEI_STATUS).forEach(([id, char]) => {
-    const card = createStatusCard(char);
-    card.dataset.charId = id;
-    
-    area.appendChild(card);
+    const card = createStatusCard(char, id);
+  area.appendChild(card);
   });
 }
 
@@ -1321,20 +1402,58 @@ function createStatusCard(char, charId) {
   
     const check = document.createElement("div");
     check.className = "status-CheckArea";
+    check.style.background = COLOR_CORE[char.color].hex;
+
+    // SVG
+    check.innerHTML = `
+<svg class="check-svg" width="32" height="32" viewBox="0 0 32 32">
+  <path
+    d="M6 16 L13 23 L26 8"
+    fill="none"
+    stroke="#fff"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  /></svg>`;
+
+  const svg = check.querySelector(".check-svg");
+  // popup
+  const popup = document.createElement("div");
+  popup.className = "kikkake-popup";
+
     const kikkakelist = document.createElement("div");
     kikkakelist.className = "status-kikkake-list";
+    renderKikkakePopup(charId, kikkakelist);
 
-    Object.entries(char.keisei).forEach(([key, value]) => {
-    
-    const kikkake = document.createElement("span");
-    kikkake.className = "status-kikkake";
-    
+    popup.appendChild(kikkakelist);
+    check.appendChild(popup);
     bottom.appendChild(check);
-    bottom.appendChild(kikkakelist);
-  });
-  card.appendChild(top);
-  card.appendChild(center);
-  card.appendChild(bottom);
+    
+  check.addEventListener("click", () => {
+  if (!svg) return;
+
+  const willOpen = !check.classList.contains("show-popup");
+  check.classList.toggle("show-popup");
+  if (willOpen) {
+    const path = svg.querySelector("path");
+
+    // ① アニメーションを完全に殺す
+    path.style.animation = "none";
+
+    // ② 強制 reflow
+    void path.getBoundingClientRect();
+
+    // ③ クラスを付け直す
+    path.style.animation = "";
+    svg.classList.remove("redraw");
+    void svg.offsetWidth;
+    svg.classList.add("redraw");
+  }
+});
+  
+card.appendChild(top);
+card.appendChild(center);
+card.appendChild(bottom);
   return card;
 }
 
@@ -1448,6 +1567,7 @@ function startBattle(stage, hp) {
 function showBattleResult() {
   document.getElementById("battleArea").style.display = "none";
   document.getElementById("battleResult").style.display = "block";
+  renderKikkakeResult();
 }
   
 // 逃げる
@@ -1571,11 +1691,14 @@ function fightOnce(monsterId) {
   if (currentEnemy.hp < 0) currentEnemy.hp = 0;
 
   renderEnemyHp();
-
+  
   if (currentEnemy.hp === 0) {
+    // ★ ここで「その戦闘の出来事」を確定させる
+    LAST_BATTLE_EVENT = dropKikkakeForPartners();
     showBattleResult();
   }
 }
+  
 
 function fightAgain() {
   closeBattleResult();
@@ -1593,6 +1716,7 @@ document.querySelectorAll(".fight-again-button").forEach(btn => {
 
 function closeBattleResult() {
   document.getElementById("battleResult").style.display = "none";
+  LAST_BATTLE_EVENT = null;
 }
 
 function renderBattlePartners() {
@@ -1664,6 +1788,186 @@ function calcAttackPower(monsterId) {
   const { valueA, valueB } = result;
   return Math.max(valueA, valueB);
 }//色整理-KEISEI //色整理-ID
+
+function createTestKikkake() {
+  return {
+    code: generateEnhanceCode(), // さっき作ったやつ
+    bonus: {
+      keisei_1: 1,
+      keisei_2: 1,
+      keisei_3: 1,
+      keisei_4: 1,
+      keisei_5: 1,
+      keisei_6: 1
+    }
+  };
+}
+
+function dropKikkakeForPartners() {
+  if (partners.length === 0) return null;
+
+  const partner =
+    partners[Math.floor(Math.random() * partners.length)];
+
+  const monsterId = partner.monsterId;
+  const inventory = KIKKAKE_INVENTORY[monsterId];
+
+  const kikkake = createTestKikkake();
+
+  const canStore = inventory.length < 5;
+
+  if (canStore) {
+    inventory.push(kikkake);
+  }
+
+  // ★ 戦闘結果として返す「出来事」
+  return {
+    monsterId,
+    code: kikkake.code,
+    dropped: true,          // ✔ を出す条件
+    stored: canStore        // 捨てたかどうか
+  };
+}
+
+function renderKikkakePopup(charId, container) {
+  container.innerHTML = "";
+
+  const list = KIKKAKE_INVENTORY[charId];
+
+  // ★ ここが重要
+  if (!Array.isArray(list)) {
+    const empty = document.createElement("div");
+    empty.className = "kikkake-item";
+    empty.textContent = "（なし）";
+    container.appendChild(empty);
+    return;
+  }
+
+  list.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "kikkake-item";
+    el.textContent = item.code;
+    container.appendChild(el);
+  });
+
+  if (list.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "kikkake-item";
+    empty.textContent = "（なし）";
+    container.appendChild(empty);
+  }
+}
+
+function generateEnhanceCode() {
+  let code = [];
+  // 1文字目：▼ 固定
+  code.push("▼");
+  // 2〜4文字目：英字（同一連続不可）
+  let prev = null;
+  for (let i = 0; i < 3; i++) {
+    const c = pickRandom(ALPHABET, prev);
+    code.push(c);
+    prev = c;
+  }
+  // 5文字目：数字 or 記号
+  // 5文字目：数字 or 記号
+    const mid = pickRandom(SYMBOL_OR_NUMBER);
+    code.push(mid);
+
+// ここで prev をリセット
+    prev = null;
+
+// 6文字目：英字（直前と同一不可、だが mid とは被らないので実質自由）
+    const alpha2 = pickRandom(ALPHABET, prev);
+    code.push(alpha2);
+  // 7文字目：ひらがな固定
+  const hira = pickRandom(HIRAGANA);
+  code.push(hira);
+
+  return code.join("");
+}
+
+function pickRandom(array, except = null) {
+  let choice;
+  do {
+    choice = array[Math.floor(Math.random() * array.length)];
+  } while (choice === except);
+  return choice;
+}
+
+function renderBattleResultKikkake() {
+  const area = document.querySelector(".result-box");
+  area.innerHTML = "";
+
+  if (!LAST_DROPPED_KIKKAKE) return;
+
+  const { monsterId, kikkake, discarded } = LAST_DROPPED_KIKKAKE;
+
+  const line = document.createElement("div");
+  line.textContent = `✔ ${kikkake.code} を獲得した`;
+  area.appendChild(line);
+
+  if (discarded) {
+    const drop = document.createElement("div");
+    drop.style.opacity = "0.6";
+    drop.textContent = "持ちきれなかった";
+    area.appendChild(drop);
+  }
+}
+
+function renderKikkakeResult() {
+  const area = document.getElementById("kikkakeResult");
+  area.innerHTML = "";
+
+  const event = LAST_BATTLE_EVENT;
+  if (!event || !event.dropped) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.alignItems = "center";
+  wrapper.style.gap = "8px";
+  wrapper.style.color = "#000";
+
+  // ✔（静的・背景色付き）
+  const check = document.createElement("div");
+  check.style.width = "32px";
+  check.style.height = "32px";
+  check.style.borderRadius = "6px";
+  check.style.display = "flex";
+  check.style.alignItems = "center";
+  check.style.justifyContent = "center";
+  check.style.background =
+    COLOR_CORE[IKEI_STATUS[event.monsterId].color].hex;
+
+  check.innerHTML = `
+<svg width="24" height="24" viewBox="0 0 32 32">
+  <path
+    d="M6 16 L13 23 L26 8"
+    fill="none"
+    stroke="#fff"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>`;
+
+  const textBox = document.createElement("div");
+
+  const line1 = document.createElement("div");
+  line1.textContent = ` ${event.code} を獲得した`;
+
+  textBox.appendChild(line1);
+
+  if (!event.stored) {
+    const line2 = document.createElement("div");
+    line2.textContent = "持ちきれないので捨てた";
+    textBox.appendChild(line2);
+  }
+
+  wrapper.appendChild(check);
+  wrapper.appendChild(textBox);
+  area.appendChild(wrapper);
+}
 
 </script>
 
