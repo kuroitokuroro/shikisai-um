@@ -362,12 +362,6 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   outline: 2px solid #8095AE;
 }
 
-#stageDropdown {
-  font-size: 1.1rem;
-  margin: 0px 10px;
-  padding: 6px 10px;
-}
-
 #kunnanButtons {
 display: grid;
 grid-template-columns: repeat(5, 1fr);
@@ -457,7 +451,7 @@ margin-top: 10px;
 .battle-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .battle-actions button {
@@ -490,7 +484,7 @@ margin-top: 10px;
   width: 250px;
   height: 60px;
   margin: 5px auto;
-  padding: 5px;
+  padding: 10px;
   border: 2px solid #111;
   border-radius: 8px;
   background: #f5f5f5;
@@ -507,22 +501,17 @@ margin-top: 10px;
 }
 
 .battle-actions {
-  margin-top: 20px;
+  margin-top: 5px;
   display: flex;
   flex-direction: column; 
   align-items: center;
-}
-
-.battle-attack-label {
-  margin-bottom: 3px;
-  font-size: 1.5em;
 }
 
 .battle-partners {
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin: 20px auto 50px auto;
+  margin: 5px auto 20px auto;
 }
 
 /* 戦闘中の異型アイコン */
@@ -599,6 +588,72 @@ margin-top: 10px;
 .kikkake-item {
   margin: 2px 0;
 }
+#kunnanGate {
+  --gate-bg: #fff;
+  position: relative;
+}
+
+#kunnanGate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gate-bg);
+  z-index: 0;
+  transition: background 0.5s;
+  border-radius: 50px;
+}
+
+.kunnan-gate-ui {
+  position: relative;
+  z-index: 1;
+}
+
+.kunnan-gate-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.kunnan-gate-bg {
+  width: 100%;
+  padding: 2.5rem 0;
+  margin: 5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.5s linear;
+}
+
+.kunnan-gate-ui {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.gate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  width: 5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.gate-card img {
+  width: 5rem;
+  height: 5rem;
+}
+
+.gate-card span {
+  font-size: 0.85rem;
+  color: #000;
+  white-space: nowrap;
+}
 
 </style> </head>
 <body> <div id="app">
@@ -644,24 +699,27 @@ margin-top: 10px;
 <!-- 戦闘画面 -->
 <div id="battleScreen" style="display:none;">
 
-<!-- ステージ選択 -->
-<div id="stageSelect">
-  <label>
-  <strong style="font-size: 1.5em;">ステージ選択</strong>
-    <select id="stageDropdown">
-      <option value="">- - - - -</option>
-      <option value="1">ステージ 1</option>
-      <option value="2">ステージ 2</option>
-      <option value="2">ステージ 3</option>
-    </select>
-  </label>
-</div>
+<!-- 苦難ゲート -->
+<div id="kunnanGate" style="display:none;">
+  <div id="kunnanGateBg" class="kunnan-gate-bg">
+<div class="kunnan-gate-ui">
+  <button id="goShallow" class="gate-card">
+    <img src="game_image/stepdown.gif" alt="浅くへ">
+    <span>より浅く</span>
+  </button>
 
-<!-- 苦難選択 -->
-<div id="kunnanSelect" style="display:none;">
-  <h2>苦難を選択</h2>
-  <div id="kunnanButtons"></div>
+  <button id="enterKunnan" class="gate-card">
+    <img src="game_image/stepin.gif" alt="苦難に挑む">
+    <span>苦難に挑む</span>
+  </button>
+
+  <button id="goDeep" class="gate-card">
+    <img src="game_image/stepup.gif" alt="深くへ">
+    <span>より深く</span>
+  </button>
+    </div>
   </div>
+</div>
   
 <!-- バトルエリア -->
 <div id="battleArea" style="display:none;">
@@ -686,7 +744,6 @@ margin-top: 10px;
 
   <!-- 行動エリア -->
 <div class="battle-actions">
-  <div class="battle-attack-label">戦う</div>
   <div class="battle-partners">
     </div>
   <button class="escape-button">逃げる</button>
@@ -765,6 +822,7 @@ const girlImages = {
   "唯奈": "game_image/yuina.jpg",
   "スミレ": "game_image/sumire.jpg"
 };
+
 const monsterImages = {
   makoto: "game_image/makoto.jpg",
   yuri: "game_image/yuri.jpg",
@@ -998,6 +1056,13 @@ setInterval(tick, TICK_INTERVAL);
 let selectedGirl = null;
 let selectedPairs = {};
 
+let currentDepth = 0;
+const MIN_DEPTH = 0;
+const MAX_DEPTH = 27; // 30 + 10*27 = 300
+function calcKunnanHp(depth) {
+  return 30 + depth * 10;
+}
+
 let currentKunnan = {
   mainColor: null,
   subColor: null,
@@ -1173,30 +1238,56 @@ function confirmPartner() {
 }
 
 function showScreen(screenName) {
-  const screens = ["select", "search", "status" ,"battle"];
+  const screens = ["select", "search", "status", "battle"];
 
+  // 画面切り替え
   screens.forEach(name => {
-    document.getElementById(name + "Screen").style.display =
-      name === screenName ? "block" : "none";
+    const screen = document.getElementById(name + "Screen");
+    if (screen) {
+      screen.style.display = name === screenName ? "block" : "none";
+    }
   });
-  const showColor =
-    screenName === "search" || screenName === "status" || screenName === "select" || screenName === "battle";
-
-  document.getElementById("colorPanel").style.display =
-    showColor ? "block" : "none";
-    
-    if (screenName === "select") {
-  currentGirlIndex = 0;
-  selectedGirl = GIRL_ORDER[currentGirlIndex];
-  updateGirlStates();
+  
+// 色彩バッグ制御
+const colorPanel = document.getElementById("colorPanel");
+if (colorPanel) {
+  colorPanel.style.display =
+    screenName === "search" ||
+    screenName === "status" ||
+    screenName === "select" ||
+    screenName === "battle"
+      ? "block"
+      : "none";
 }
 
-   if (screenName === "status") {
+  // select画面初期化
+  if (screenName === "select") {
+    currentGirlIndex = 0;
+    selectedGirl = GIRL_ORDER[currentGirlIndex];
+    updateGirlStates();
+  }
+
+  // battle画面初期化（苦難ゲート）
+  if (screenName === "battle") {
+    setupKunnanGateEvents();
+    const gate = document.getElementById("kunnanGate");
+    const battle = document.getElementById("battleArea");
+
+    if (gate) gate.style.display = "block";
+    if (battle) battle.style.display = "none";
+
+    updateGateBackground();
+  }
+
+  // status画面描画
+  if (screenName === "status") {
     renderStatusTabs();
     renderStatusScreen();
   }
-   currentScreen = screenName;
+
+  currentScreen = screenName;
 }
+
 
 function createPartnerFrame(partner) {
   const row = document.createElement("div");
@@ -1477,21 +1568,7 @@ function keiseiDot(value) {
   return 1;
 }
 
-const stageDropdown = document.getElementById("stageDropdown");
-const kunnans = document.getElementById("kunnanSelect");
 const buttonsArea = document.getElementById("kunnanButtons");
-
-stageDropdown.addEventListener("change", () => {
-  const stage = stageDropdown.value;
-
-  if (!stage) {
-    kunnans.style.display = "none";
-    return;
-  }
-  renderKunnans(stage);
-  kunnans.style.display = "block";
-  buttonsArea.style.display = "grid";
-});
 
 function renderKunnans(stage) {
   buttonsArea.innerHTML = "";
@@ -1536,9 +1613,6 @@ function startBattle(stage, hp) {
 );//色整理-HEX
 
   renderBattlePartners();
-  
-  document.getElementById("stageSelect").style.display = "none";
-  document.getElementById("kunnanSelect").style.display = "none";
   document.getElementById("battleArea").style.display = "block";
   
   lastBattle.stage = stage;
@@ -1574,13 +1648,7 @@ function showBattleResult() {
 function escapeBattle() {
   closeBattleResult();
   document.getElementById("battleArea").style.display = "none";
-  document.getElementById("kunnanSelect").style.display = "block";
-  
-  const battleArea = document.getElementById("battleArea");
-  const kunnans    = document.getElementById("kunnanSelect");
-  
-  battleArea.style.display = "none";
-  kunnans.style.display = "block";
+  document.getElementById("kunnanGate").style.display = "block";
 }
 
 document.querySelectorAll(".escape-button").forEach(btn => {
@@ -1698,7 +1766,6 @@ function fightOnce(monsterId) {
     showBattleResult();
   }
 }
-  
 
 function fightAgain() {
   closeBattleResult();
@@ -1895,26 +1962,6 @@ function pickRandom(array, except = null) {
   return choice;
 }
 
-function renderBattleResultKikkake() {
-  const area = document.querySelector(".result-box");
-  area.innerHTML = "";
-
-  if (!LAST_DROPPED_KIKKAKE) return;
-
-  const { monsterId, kikkake, discarded } = LAST_DROPPED_KIKKAKE;
-
-  const line = document.createElement("div");
-  line.textContent = `✔ ${kikkake.code} を獲得した`;
-  area.appendChild(line);
-
-  if (discarded) {
-    const drop = document.createElement("div");
-    drop.style.opacity = "0.6";
-    drop.textContent = "持ちきれなかった";
-    area.appendChild(drop);
-  }
-}
-
 function renderKikkakeResult() {
   const area = document.getElementById("kikkakeResult");
   area.innerHTML = "";
@@ -1924,15 +1971,20 @@ function renderKikkakeResult() {
 
   const wrapper = document.createElement("div");
   wrapper.style.display = "flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.gap = "8px";
+  wrapper.style.flexDirection = "column";
   wrapper.style.color = "#000";
 
-  // ✔（静的・背景色付き）
+  // 1行目
+  const line1 = document.createElement("div");
+  line1.style.display = "flex";
+  line1.style.alignItems = "center";
+  line1.style.gap = "6px";
+
+  // ✔
   const check = document.createElement("div");
-  check.style.width = "32px";
-  check.style.height = "32px";
-  check.style.borderRadius = "6px";
+  check.style.width = "16px";
+  check.style.height = "16px";
+  check.style.borderRadius = "4px";
   check.style.display = "flex";
   check.style.alignItems = "center";
   check.style.justifyContent = "center";
@@ -1940,7 +1992,7 @@ function renderKikkakeResult() {
     COLOR_CORE[IKEI_STATUS[event.monsterId].color].hex;
 
   check.innerHTML = `
-<svg width="24" height="24" viewBox="0 0 32 32">
+<svg width="12" height="12" viewBox="0 0 32 32">
   <path
     d="M6 16 L13 23 L26 8"
     fill="none"
@@ -1950,24 +2002,85 @@ function renderKikkakeResult() {
     stroke-linejoin="round"
   />
 </svg>`;
+  const text = document.createElement("span");
+  text.textContent = `${event.code} を獲得した`;
 
-  const textBox = document.createElement("div");
+  line1.appendChild(check);
+  line1.appendChild(text);
+  wrapper.appendChild(line1);
 
-  const line1 = document.createElement("div");
-  line1.textContent = ` ${event.code} を獲得した`;
-
-  textBox.appendChild(line1);
-
+  // 2行目（条件付き）
   if (!event.stored) {
     const line2 = document.createElement("div");
     line2.textContent = "持ちきれないので捨てた";
-    textBox.appendChild(line2);
+    line2.style.marginLeft = "22px";
+    line2.style.opacity = "0.5";
+    wrapper.appendChild(line2);
   }
-
-  wrapper.appendChild(check);
-  wrapper.appendChild(textBox);
   area.appendChild(wrapper);
 }
+
+function updateGateBackground() {
+  const gate = document.getElementById("kunnanGate");
+  if (!gate) return;
+
+  const ratio = Math.min(currentDepth / 20, 1);
+  const value = Math.floor(255 * (1 - ratio));
+  gate.style.setProperty(
+    "--gate-bg",
+    `rgb(${value}, ${value}, ${value})`
+  );
+}
+
+function showKunnanGate() {
+  const gate = document.getElementById("kunnanGate");
+  const battle = document.getElementById("battleArea");
+
+  if (gate) gate.style.display = "block";
+  if (battle) battle.style.display = "none";
+  updateGateBackground();
+    setupKunnanGateEvents(); 
+}
+
+function setupKunnanGateEvents() {
+  const shallowBtn = document.getElementById("goShallow");
+  if (shallowBtn) {
+    shallowBtn.onclick = () => {
+      if (currentDepth > MIN_DEPTH) {
+        currentDepth--;
+        updateGateBackground();
+      }
+    };
+  }
+
+  const deepBtn = document.getElementById("goDeep");
+  if (deepBtn) {
+    deepBtn.onclick = () => {
+      if (currentDepth < MAX_DEPTH) {
+        currentDepth++;
+        updateGateBackground();
+      }
+    };
+  }
+
+  const enterBtn = document.getElementById("enterKunnan");
+  if (enterBtn) {
+    enterBtn.onclick = () => {
+      const hp = calcKunnanHp(currentDepth);
+
+      const gate = document.getElementById("kunnanGate");
+      if (gate) gate.style.display = "none";
+
+      const battle = document.getElementById("battleArea");
+      if (battle) battle.style.display = "block";
+
+      startBattle(null, hp);
+    };
+  }
+}
+
+
+
 
 </script>
 
