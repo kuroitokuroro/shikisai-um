@@ -667,18 +667,18 @@ margin-top: 10px;
 <!-- 選択画面 -->
 <div id="selectScreen">
 <h2>少女を選択</h2>
- <div class="icon-wrapper" data-girl="淋漓"><img src="game_image/rinri.jpg" class="icon-image girl-icon" data-girl="淋漓"></div>
+ <div class="icon-wrapper" data-girl="淋漓"><img src="image/rinri.jpg" class="icon-image girl-icon" data-girl="淋漓"></div>
 <div class="icon-wrapper" data-girl="唯奈">
- <img src="game_image/yuina.jpg" class="icon-image girl-icon" data-girl="唯奈"></div>
-<div class="icon-wrapper" data-girl="スミレ"><img src="game_image/sumire.jpg" class="icon-image girl-icon" data-girl="スミレ"></div>
+ <img src="image/yuina.jpg" class="icon-image girl-icon" data-girl="唯奈"></div>
+<div class="icon-wrapper" data-girl="スミレ"><img src="image/sumire.jpg" class="icon-image girl-icon" data-girl="スミレ"></div>
 
 <h2>パートナーの異形を選んでね</h2>
-<div class="icon-wrapper" data-monster-id="makoto"><img src="game_image/makoto.jpg" class="icon-image monster-icon"></div>
-<div class="icon-wrapper" data-monster-id="yuri"><img src="game_image/yuri.jpg" class="icon-image monster-icon"></div>
-<div class="icon-wrapper" data-monster-id="takashi"><img src="game_image/takashi.jpg" class="icon-image monster-icon"></div>
-<div class="icon-wrapper" data-monster-id="saki"><img src="game_image/saki.jpg" class="icon-image monster-icon"></div>
-<div class="icon-wrapper" data-monster-id="osamu"><img src="game_image/osamu.jpg" class="icon-image monster-icon"></div>
-<div class="icon-wrapper" data-monster-id="tooru"><img src="game_image/tooru.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="makoto"><img src="image/makoto.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="yuri"><img src="image/yuri.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="takashi"><img src="image/takashi.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="saki"><img src="image/saki.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="osamu"><img src="image/osamu.jpg" class="icon-image monster-icon"></div>
+<div class="icon-wrapper" data-monster-id="tooru"><img src="image/tooru.jpg" class="icon-image monster-icon"></div>
 <h2>3組選んだら...</h2>
 <p><button id="mainButton" onclick="handleMainButton()">パートナー選択</button></p></div>
 
@@ -704,17 +704,17 @@ margin-top: 10px;
   <div id="kunnanGateBg" class="kunnan-gate-bg">
 <div class="kunnan-gate-ui">
   <button id="goShallow" class="gate-card">
-    <img src="game_image/stepdown.gif" alt="浅くへ">
+    <img src="image/stepdown.gif" alt="浅くへ">
     <span>より浅く</span>
   </button>
 
   <button id="enterKunnan" class="gate-card">
-    <img src="game_image/stepin.gif" alt="苦難に挑む">
+    <img src="image/stepin.gif" alt="苦難に挑む">
     <span>苦難に挑む</span>
   </button>
 
   <button id="goDeep" class="gate-card">
-    <img src="game_image/stepup.gif" alt="深くへ">
+    <img src="image/stepup.gif" alt="深くへ">
     <span>より深く</span>
   </button>
     </div>
@@ -818,18 +818,18 @@ const colorClassMap = {
 // 色整理-orb：獲得orbとステータス画面orbが混在（orb整理時に着手予定）
 
 const girlImages = {
-  "淋漓": "game_image/rinri.jpg",
-  "唯奈": "game_image/yuina.jpg",
-  "スミレ": "game_image/sumire.jpg"
+  "淋漓": "image/rinri.jpg",
+  "唯奈": "image/yuina.jpg",
+  "スミレ": "image/sumire.jpg"
 };
 
 const monsterImages = {
-  makoto: "game_image/makoto.jpg",
-  yuri: "game_image/yuri.jpg",
-  takashi: "game_image/takashi.jpg",
-  saki: "game_image/saki.jpg",
-  osamu: "game_image/osamu.jpg",
-  tooru: "game_image/tooru.jpg"
+  makoto: "image/makoto.jpg",
+  yuri: "image/yuri.jpg",
+  takashi: "image/takashi.jpg",
+  saki: "image/saki.jpg",
+  osamu: "image/osamu.jpg",
+  tooru: "image/tooru.jpg"
 };
 
 const colorBag = {
@@ -854,7 +854,7 @@ const IKEI_STATUS = {
   makoto: {
     name: "安全 真",
     description: "まじめで頑固\n例外や応用を知らない",
-    image: "game_image/makoto_full.jpg",
+    image: "image/makoto_full.jpg",
     keisei: {
       keisei_1: 20,
       keisei_2: 4,
@@ -868,7 +868,7 @@ const IKEI_STATUS = {
   yuri: {
     name: "幼 ユリ",
     description: "気分屋で惚れっぽい\nあなたがすべて",
-    image: "game_image/yuri_full.jpg",
+    image: "image/yuri_full.jpg",
     keisei: {
       keisei_1: 12,
       keisei_2: 20,
@@ -882,7 +882,7 @@ const IKEI_STATUS = {
   takashi: {
     name: "目覚 崇",
     description: "陽気な道化\n異端こそ生き甲斐",
-    image: "game_image/takashi_full.jpg",
+    image: "image/takashi_full.jpg",
     keisei: {
       keisei_1: 4,
       keisei_2: 12,
@@ -896,7 +896,7 @@ const IKEI_STATUS = {
   saki: {
     name: "風下 咲",
     description: "臆病で親切\n不安に苛まれている",
-    image: "game_image/saki_full.jpg",
+    image: "image/saki_full.jpg",
     keisei: {
       keisei_1: 12,
       keisei_2: 12,
@@ -910,7 +910,7 @@ const IKEI_STATUS = {
   osamu: {
     name: "文豪 統",
     description: "思考と論理\n我在るのは思う為",
-    image: "game_image/osamu_full.jpg",
+    image: "image/osamu_full.jpg",
     keisei: {
       keisei_1: 4,
       keisei_2: 12,
@@ -924,7 +924,7 @@ const IKEI_STATUS = {
   tooru: {
     name: "力業 透",
     description: "剛腕と気合\n出来ないことなどない",
-    image: "game_image/tooru_full.jpg",
+    image: "image/tooru_full.jpg",
     keisei: {
       keisei_1: 12,
       keisei_2: 4,
@@ -2084,6 +2084,6 @@ function setupKunnanGateEvents() {
 
 </script>
 
-<footer id="pageFooter"><img src="game_image/logo.png" alt="色彩UM ロゴ"></footer>
+<footer id="pageFooter"><img src="image/logo.png" alt="色彩UM ロゴ"></footer>
 
 </div> </body> </html>
