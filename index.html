@@ -290,6 +290,10 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   margin: 4px;
 }
 
+.keisei-dot {
+  margin-right: 0.5rem;
+}
+
 .keisei-dot .color-orb {
   position:relative;
   transform: scale(1.2);
@@ -297,24 +301,28 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   margin: 2px;
 }
 
-.keisei-bar {
-  width: 130px;
-  height: 15px;
-  margin: 3px;
-  padding: 4px;
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow:
-  inset 1px 1px 2px rgba(0,0,0,0.1);
+.keisei-value {
+  display: grid;
+  grid-template-columns: 4ch auto; /* ← total用 / detail用 */
+  justify-content: end;
+  align-items: baseline;
+  column-gap: 0.25rem;
+  white-space: nowrap;
+  text-align: right;
   margin-left: auto;
 }
 
-.keisei-fill {
-  background: linear-gradient(
-    90deg,
-    #d4535d,
-    #94323a,
-  ); }
+.keisei-total {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.keisei-detail {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
 
 .status-bottom {
   padding: 10px;
@@ -333,6 +341,20 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.kikkake-summary {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 0.5rem 1rem;
+  justify-content: start;
+  align-content: start;
+}
+
+.kikkake-slot {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  opacity: 0.9;
 }
 
 #statusTabs {
@@ -586,8 +608,28 @@ margin-top: 10px;
 }
 
 .kikkake-item {
-  margin: 2px 0;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
 }
+
+.kikkake-code {
+  font-weight: bold;
+}
+
+.kikkake-bonus {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-left: 0.5rem;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.7rem; /* 行間 / 列間 */
+}
+
+.kikkake-bonus-line {
+  white-space: nowrap;
+}
+
 #kunnanGate {
   --gate-bg: #fff;
   position: relative;
@@ -600,7 +642,10 @@ margin-top: 10px;
   background: var(--gate-bg);
   z-index: 0;
   transition: background 0.5s;
-  border-radius: 50px;
+  
+  border: 4px solid #9a9a9a;
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 #9a9a9a;
 }
 
 .kunnan-gate-ui {
@@ -645,7 +690,7 @@ margin-top: 10px;
 }
 
 .gate-card img {
-  width: 5rem;
+  width: auto;
   height: 5rem;
 }
 
@@ -653,6 +698,29 @@ margin-top: 10px;
   font-size: 0.85rem;
   color: #000;
   white-space: nowrap;
+}
+
+.kikkake-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kikkake-equip-btn {
+  background: #222;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  padding: 2px;
+  cursor: pointer;
+  opacity: 0.7;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kikkake-equip-btn:hover {
+  opacity: 1;
 }
 
 </style> </head>
@@ -704,17 +772,17 @@ margin-top: 10px;
   <div id="kunnanGateBg" class="kunnan-gate-bg">
 <div class="kunnan-gate-ui">
   <button id="goShallow" class="gate-card">
-    <img src="image/stepdown.gif" alt="浅くへ">
+    <img src="image/stepdown.png" alt="浅くへ">
     <span>より浅く</span>
   </button>
 
   <button id="enterKunnan" class="gate-card">
-    <img src="image/stepin.gif" alt="苦難に挑む">
+    <img src="image/stepin.png" alt="苦難に挑む">
     <span>苦難に挑む</span>
   </button>
 
   <button id="goDeep" class="gate-card">
-    <img src="image/stepup.gif" alt="深くへ">
+    <img src="image/stepup.png" alt="深くへ">
     <span>より深く</span>
   </button>
     </div>
@@ -1005,7 +1073,6 @@ const COLOR_BY_KEISEI = Object.fromEntries(
     .map(([id, c]) => [c.keisei, id])
 );
 
-// 異形ID → 所持きっかけ配列
 const KIKKAKE_INVENTORY = {
   makoto: [],
   yuri: [],
@@ -1013,6 +1080,16 @@ const KIKKAKE_INVENTORY = {
   saki: [],
   osamu: [],
   tooru: []
+};
+
+// キャラID → 装備中きっかけ（1つだけ）
+const KIKKAKE_EQUIPPED = {
+  makoto: null,
+  yuri: null,
+  takashi: null,
+  saki: null,
+  osamu: null,
+  tooru: null
 };
 
 // 直近のドロップ結果（リザルト表示用）
@@ -1238,6 +1315,7 @@ function confirmPartner() {
 }
 
 function showScreen(screenName) {
+  closeBattleResult();
   const screens = ["select", "search", "status", "battle"];
 
   // 画面切り替え
@@ -1284,10 +1362,8 @@ if (colorPanel) {
     renderStatusTabs();
     renderStatusScreen();
   }
-
   currentScreen = screenName;
 }
-
 
 function createPartnerFrame(partner) {
   const row = document.createElement("div");
@@ -1478,19 +1554,35 @@ function createStatusCard(char, charId) {
       orb.className = `color-orb ${colorClass}`;
       dotBox.appendChild(orb);
     }
+    const bonus = getKikkakeBonus(charId, key) || 0;
 
-    const bar = document.createElement("div");
-    bar.className = "keisei-bar";
+    const valueBox = document.createElement("span");
+    valueBox.className = "keisei-value";
+
+    const total = document.createElement("span");
+    total.className = "keisei-total";
+    total.textContent = value + bonus;
+
+    const detail = document.createElement("span");
+    detail.className = "keisei-detail";
+    detail.textContent = `(${value}+${bonus})`;
+    
+    valueBox.appendChild(total);
+    valueBox.appendChild(detail);
 
     row.appendChild(label);
     row.appendChild(dotBox);
-    row.appendChild(bar);
+    row.appendChild(valueBox);
     center.appendChild(row);
   });
 
-  const bottom = document.createElement("div");
-  bottom.className = "status-bottom";
-  
+    const bottom = document.createElement("div");
+    bottom.className = "status-bottom";
+
+// 左：チェックマーク
+    const left = document.createElement("div");
+    left.className = "status-bottom-left";
+
     const check = document.createElement("div");
     check.className = "status-CheckArea";
     check.style.background = COLOR_CORE[char.color].hex;
@@ -1507,10 +1599,10 @@ function createStatusCard(char, charId) {
     stroke-linejoin="round"
   /></svg>`;
 
-  const svg = check.querySelector(".check-svg");
+    const svg = check.querySelector(".check-svg");
   // popup
-  const popup = document.createElement("div");
-  popup.className = "kikkake-popup";
+    const popup = document.createElement("div");
+    popup.className = "kikkake-popup";
 
     const kikkakelist = document.createElement("div");
     kikkakelist.className = "status-kikkake-list";
@@ -1518,8 +1610,17 @@ function createStatusCard(char, charId) {
 
     popup.appendChild(kikkakelist);
     check.appendChild(popup);
-    bottom.appendChild(check);
-    
+    left.appendChild(check);
+  
+// 右：一覧
+    const right = document.createElement("div");
+    right.className = "status-bottom-right";
+    renderKikkakeSummary(charId, right);
+
+// 合体
+    bottom.appendChild(left);
+    bottom.appendChild(right);
+  
   check.addEventListener("click", () => {
   if (!svg) return;
 
@@ -1528,20 +1629,16 @@ function createStatusCard(char, charId) {
   if (willOpen) {
     const path = svg.querySelector("path");
 
-    // ① アニメーションを完全に殺す
     path.style.animation = "none";
 
-    // ② 強制 reflow
     void path.getBoundingClientRect();
-
-    // ③ クラスを付け直す
+    
     path.style.animation = "";
     svg.classList.remove("redraw");
     void svg.offsetWidth;
     svg.classList.add("redraw");
   }
 });
-  
 card.appendChild(top);
 card.appendChild(center);
 card.appendChild(bottom);
@@ -1881,7 +1978,7 @@ function dropKikkakeForPartners() {
 
   const kikkake = createTestKikkake();
 
-  const canStore = inventory.length < 5;
+  const canStore = inventory.length < 6;
 
   if (canStore) {
     inventory.push(kikkake);
@@ -1901,8 +1998,7 @@ function renderKikkakePopup(charId, container) {
 
   const list = KIKKAKE_INVENTORY[charId];
 
-  // ★ ここが重要
-  if (!Array.isArray(list)) {
+  if (!Array.isArray(list) || list.length === 0) {
     const empty = document.createElement("div");
     empty.className = "kikkake-item";
     empty.textContent = "（なし）";
@@ -1910,19 +2006,53 @@ function renderKikkakePopup(charId, container) {
     return;
   }
 
-  list.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "kikkake-item";
-    el.textContent = item.code;
-    container.appendChild(el);
+  list.forEach((item, index) => {
+  const itemEl = document.createElement("div");
+  itemEl.className = "kikkake-item";
+
+  const codeEl = document.createElement("div");
+  codeEl.className = "kikkake-code";
+  codeEl.textContent = item.code;
+
+  // 装備ボタン（小さな✔）
+  const equipBtn = document.createElement("button");
+  equipBtn.className = "kikkake-equip-btn";
+  equipBtn.innerHTML = `
+<svg width="14" height="14" viewBox="0 0 32 32">
+  <path
+    d="M6 16 L13 23 L26 8"
+    fill="none"
+    stroke="#fff"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>`;
+
+  equipBtn.onclick = () => {
+    equipKikkake(charId, index);
+  };
+
+  const header = document.createElement("div");
+  header.className = "kikkake-header";
+  header.appendChild(codeEl);
+  header.appendChild(equipBtn);
+
+  itemEl.appendChild(header);
+
+  // 強化値表示（既存）
+  const bonusEl = document.createElement("div");
+  bonusEl.className = "kikkake-bonus";
+
+  Object.entries(item.bonus).forEach(([key, value]) => {
+    const line = document.createElement("span");
+    line.textContent = `+${value}`;
+    bonusEl.appendChild(line);
   });
 
-  if (list.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "kikkake-item";
-    empty.textContent = "（なし）";
-    container.appendChild(empty);
-  }
+  itemEl.appendChild(bonusEl);
+  container.appendChild(itemEl);
+});
 }
 
 function generateEnhanceCode() {
@@ -2078,6 +2208,94 @@ function setupKunnanGateEvents() {
     };
   }
 }
+
+function generateKikkakeBonus(depth, affinityType) {
+  // affinityType: "strong" | "normal" | "weak"
+  const tier = Math.floor(depth / 10);
+
+  let base;
+  let randMax;
+
+  switch (affinityType) {
+    case "strong":
+      base = 2;
+      randMax = 6;
+      break;
+    case "normal":
+      base = 1;
+      randMax = 2;
+      break;
+    case "weak":
+      base = 0;
+      randMax = 1;
+      break;
+    default:
+      base = 0;
+      randMax = 0;
+  }
+  const randomPart = Math.floor(Math.random() * (randMax + 1));
+  return base + tier + randomPart;
+}
+
+function createKikkake(depth, affinities) {
+  // affinities: ["strong", "normal", "weak", ...] 6要素
+  const bonus = {};
+
+  affinities.forEach((type, index) => {
+    bonus[`keisei_${index + 1}`] =
+      generateKikkakeBonus(depth, type);
+  });
+
+  return {
+    code: generateEnhanceCode(), // 既存のコード生成
+    bonus,
+    tier: Math.floor(depth / 10)
+  };
+}
+
+function calcAttackDamage(baseKeisei, bonusKeisei) {
+  return Math.floor(baseKeisei + bonusKeisei);
+}
+
+function getKikkakeBonus(charId, keiseiKey) {
+  const equipped = KIKKAKE_EQUIPPED[charId];
+  if (!equipped || !equipped.bonus) return 0;
+
+  return equipped.bonus[keiseiKey] || 0;
+}
+
+function equipKikkake(charId, index) {
+  const inventory = KIKKAKE_INVENTORY[charId];
+  if (!Array.isArray(inventory)) return;
+  if (!inventory[index]) return;
+
+  const newKikkake = inventory[index];
+
+  // 既存の装備は消滅（参照を捨てる）
+  KIKKAKE_EQUIPPED[charId] = newKikkake;
+
+  // INVENTORY から削除
+  inventory.splice(index, 1);
+
+  // ステータス再描画
+  renderStatusScreen();
+}
+
+function renderKikkakeSummary(charId, container) {
+  container.innerHTML = "";
+
+  const list = KIKKAKE_INVENTORY[charId];
+  if (!Array.isArray(list)) return;
+
+  list.slice(0, 6).forEach(item => {
+    const el = document.createElement("div");
+    el.className = "kikkake-slot";
+    el.textContent = item.code;
+    container.appendChild(el);
+  });
+}
+
+
 
 
 
