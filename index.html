@@ -330,6 +330,7 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
   border: 4px solid #e0e6ef;
   background: #e0e6ef;
   display: flex;
+  font-size: 0.8rem;
 }
 
 .status-CheckArea {
@@ -721,6 +722,11 @@ margin-top: 10px;
 
 .kikkake-equip-btn:hover {
   opacity: 1;
+}
+
+.status-bottom-right{
+  padding: 0px 10px;
+  display: flex;
 }
 
 </style> </head>
@@ -1858,9 +1864,8 @@ function fightOnce(monsterId) {
   renderEnemyHp();
   
   if (currentEnemy.hp === 0) {
-    // ★ ここで「その戦闘の出来事」を確定させる
-    LAST_BATTLE_EVENT = dropKikkakeForPartners();
-    showBattleResult();
+  LAST_BATTLE_EVENT = dropKikkakeForPartners(currentDepth);
+  showBattleResult();
   }
 }
 
@@ -2237,8 +2242,11 @@ function generateKikkakeBonus(depth, affinityType) {
   return base + tier + randomPart;
 }
 
-function createKikkake(depth, affinities) {
-  // affinities: ["strong", "normal", "weak", ...] 6要素
+function createKikkake(depth) {
+  if (depth == null || depth < 1) {
+    depth = 1;
+  }
+  const tier = calcTier(depth);
   const bonus = {};
 
   affinities.forEach((type, index) => {
@@ -2293,6 +2301,160 @@ function renderKikkakeSummary(charId, container) {
     el.textContent = item.code;
     container.appendChild(el);
   });
+}
+
+// ===== 苦難HP 設定 =====
+const BASE_KUNNAN_HP = 100;
+
+// 1 Tier（11階）分の上昇パターン
+const KUNNAN_TIER_PATTERN = [
+  0,    // 1階
+  25,   // 2
+  25,   // 3
+  25,   // 4
+  25,   // 5
+  30,   // 6
+  30,   // 7
+  30,   // 8
+  35,   // 9
+  35,   // 10
+  40    // 11
+];
+
+const KUNNAN_TIER_SIZE = KUNNAN_TIER_PATTERN.length; // 11
+
+function calcKunnanHp(depth) {
+  if (depth <= 1) return BASE_KUNNAN_HP;
+
+  let hp = BASE_KUNNAN_HP;
+
+  let remaining = depth - 1;
+
+  // 何Tier分進んだか
+  const fullTiers = Math.floor(remaining / KUNNAN_TIER_SIZE);
+  const rest = remaining % KUNNAN_TIER_SIZE;
+
+  // Tier丸ごとの加算（1 Tier = 300）
+  hp += fullTiers * 300;
+
+  // 端数階層分をパターンから加算
+  for (let i = 1; i <= rest; i++) {
+    hp += KUNNAN_TIER_PATTERN[i];
+  }
+  return hp;
+}
+
+function calcTier(depth) {
+  return Math.floor((depth - 1) / 11) + 1;
+}
+
+const KIKKAKE_BONUS_TABLE = [
+  null, // index 0 は未使用（Tier1を1に合わせる）
+  {
+    strong: [1, 3],
+    normal: [0, 1],
+    weak:   [0, 0],
+  },
+  {
+    strong: [2, 4],
+    normal: [1, 2],
+    weak:   [0, 1],
+  },
+  {
+    strong: [3, 5],
+    normal: [1, 3],
+    weak:   [1, 1],
+  },
+  {
+    strong: [4, 6],
+    normal: [2, 4],
+    weak:   [1, 2],
+  },
+  {
+    strong: [5, 7],
+    normal: [3, 5],
+    weak:   [2, 2],
+  },
+  {
+    strong: [6, 8],
+    normal: [4, 6],
+    weak:   [2, 3],
+  }
+];
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function createKikkake(depth) {
+  const tier = calcTier(depth);
+
+  // Tier6以降は最後のテーブルを使う
+  const table =
+  KIKKAKE_BONUS_TABLE[
+    Math.min(Math.max(tier, 1), KIKKAKE_BONUS_TABLE.length - 1)
+  ];
+
+  // 傾性キー一覧
+  const keys = [
+    "keisei_1",
+    "keisei_2",
+    "keisei_3",
+    "keisei_4",
+    "keisei_5",
+    "keisei_6",
+  ];
+
+  // シャッフル
+  const shuffled = [...keys].sort(() => Math.random() - 0.5);
+  
+  const strongKeys = shuffled.slice(0, 1);
+  const normalKeys = shuffled.slice(1, 4);
+  const weakKeys   = shuffled.slice(4, 6);
+  
+  const bonus = {};
+
+  strongKeys.forEach(k => {
+    bonus[k] = randInt(...table.strong);
+  });
+
+  normalKeys.forEach(k => {
+    bonus[k] = randInt(...table.normal);
+  });
+
+  weakKeys.forEach(k => {
+    bonus[k] = randInt(...table.weak);
+  });
+
+  return {
+    code: generateEnhanceCode(),
+    bonus
+  };
+}
+
+function dropKikkakeForPartners(depth) {
+  if (partners.length === 0) return null;
+
+  const partner =
+    partners[Math.floor(Math.random() * partners.length)];
+
+  const monsterId = partner.monsterId;
+  const inventory = KIKKAKE_INVENTORY[monsterId];
+
+  const kikkake = createKikkake(depth);
+
+  const canStore = inventory.length < 6;
+
+  if (canStore) {
+    inventory.push(kikkake);
+  }
+
+  return {
+    monsterId,
+    code: kikkake.code,
+    dropped: true,
+    stored: canStore
+  };
 }
 
 
