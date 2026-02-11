@@ -199,7 +199,8 @@ button { padding: 5px 10px; margin: 2px; cursor: pointer; background-color: #f9f
 
 #topButtons {
   margin-top: 40px; 
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  gap: 2px;
 }
 
 #pageFooter {
@@ -732,6 +733,71 @@ margin-top: 10px;
   font-size: 0.8rem;
 }
 
+.save-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.save-slot {
+  border: 2px dashed #777;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.save-box {
+  min-height: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.save-message {
+  font-size: 1rem;
+}
+
+.save-time {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.save-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.save-btn {
+  background: #ccc;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn.ok {
+  background: #b33;
+  color: #fff;
+}
+
+.save-action-btn {
+  background: #888;
+  color: #fff;
+  transition: 0.2s;
+}
+
+.save-action-btn.armed {
+  background: #c0392b;
+}
+
+.save-action-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.save-slot button.confirm {
+  background: #c0392b;
+  color: #fff;
+}
+
 </style> </head>
 <body> <div id="app">
 
@@ -739,7 +805,8 @@ margin-top: 10px;
   <button onclick="showScreen('select')">パートナー</button>
   <button onclick="showScreen('search')">探索</button>
   <button onclick="showScreen('status')">能力</button>
-  <button onclick="showScreen('battle')">戦闘</button></div>
+  <button onclick="showScreen('battle')">戦闘</button>
+  <button onclick="showScreen('settings')">設定</button></div>
 
 <!-- 選択画面 -->
 <div id="selectScreen">
@@ -846,7 +913,76 @@ margin-top: 10px;
 </div>
 
 </div>
+<!-- 設定画面 -->
+<div id="settingsScreen" style="display:none;">
+  <h2>設定</h2>
 
+  <div class="save-slots">
+
+    <!-- スロット1 -->
+    <div class="save-slot" data-slot="1">
+      <div class="save-box">
+        <div class="save-status">未保存</div>
+        <div class="save-time"></div>
+      </div>
+
+      <div class="save-buttons">
+        <button
+          class="save-action-btn"
+          data-slot="1"
+          data-action="0">
+          セーブ
+        </button>
+
+        <button
+          class="save-action-btn"
+          data-slot="1"
+          data-action="1">
+          ロード
+        </button>
+
+        <button
+          class="save-action-btn"
+          data-slot="1"
+          data-action="2">
+          削除
+        </button>
+      </div>
+    </div>
+
+    <!-- スロット2 -->
+    <div class="save-slot" data-slot="2">
+      <div class="save-box">
+        <div class="save-status">未保存</div>
+        <div class="save-time"></div>
+      </div>
+
+      <div class="save-buttons">
+        <button
+          class="save-action-btn"
+          data-slot="2"
+          data-action="0">
+          セーブ
+        </button>
+
+        <button
+          class="save-action-btn"
+          data-slot="2"
+          data-action="1">
+          ロード
+        </button>
+
+        <button
+          class="save-action-btn"
+          data-slot="2"
+          data-action="2">
+          削除
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <!-- 色彩（画面部品） -->
 <div id="colorPanel">
   <div id="colorStatus"></div>
@@ -909,7 +1045,7 @@ const monsterImages = {
   tooru: "image/tooru.jpg"
 };
 
-const colorBag = {
+let colorBag = {
   "green": 0,
   "orange": 0,
   "blue": 0,
@@ -927,7 +1063,7 @@ const keisei_LABELS = {
   keisei_6: "熱"
 };
 
-const IKEI_STATUS = {
+let IKEI_STATUS = {
   makoto: {
     name: "安全 真",
     description: "まじめで頑固\n例外や応用を知らない",
@@ -1082,7 +1218,7 @@ const COLOR_BY_KEISEI = Object.fromEntries(
     .map(([id, c]) => [c.keisei, id])
 );
 
-const KIKKAKE_INVENTORY = {
+let KIKKAKE_INVENTORY = {
   makoto: [],
   yuri: [],
   takashi: [],
@@ -1092,7 +1228,7 @@ const KIKKAKE_INVENTORY = {
 };
 
 // キャラID → 装備中きっかけ（1つだけ）
-const KIKKAKE_EQUIPPED = {
+let KIKKAKE_EQUIPPED = {
   makoto: null,
   yuri: null,
   takashi: null,
@@ -1157,6 +1293,22 @@ let currentKunnan = {
 };//色整理-KEISEI //色整理-ID
 
 let currentScreen = "select";
+
+// ===== セーブデータ設定領域 =====
+const SAVE_ACTION = {
+  NONE: -1,
+  SAVE: 0,
+  LOAD: 1,
+  DELETE: 2
+};
+
+let activeConfirm = {
+  slotIndex: null,
+  action: SAVE_ACTION.NONE
+};
+
+let isProcessing = false;
+// ===== セーブデータ設定領域 =====
 
 function keiseiByKunnan(monsterId) {
   const char = IKEI_STATUS[monsterId];
@@ -1324,28 +1476,34 @@ function confirmPartner() {
 }
 
 function showScreen(screenName) {
-  closeBattleResult();
-  const screens = ["select", "search", "status", "battle"];
+  const screens = ["select", "search", "status", "battle", "settings"];
 
-  // 画面切り替え
   screens.forEach(name => {
     const screen = document.getElementById(name + "Screen");
     if (screen) {
       screen.style.display = name === screenName ? "block" : "none";
     }
   });
+
+  const colorPanel = document.getElementById("colorPanel");
+  if (colorPanel) {
+    colorPanel.style.display =
+      screenName === "search" ||
+      screenName === "status" ||
+      screenName === "select" ||
+      screenName === "battle"
+        ? "block"
+        : "none";
+  }
   
-// 色彩バッグ制御
-const colorPanel = document.getElementById("colorPanel");
-if (colorPanel) {
-  colorPanel.style.display =
-    screenName === "search" ||
-    screenName === "status" ||
-    screenName === "select" ||
-    screenName === "battle"
-      ? "block"
-      : "none";
+// ===== セーブデータ設定領域 =====
+  if (screenName === "settings") {
+  resetSaveUIState();
+  refreshAllSaveSlots();
+  setupSaveButtons();
+  setupSettingsCancelArea();
 }
+// ===== セーブデータ設定領域 =====
 
   // select画面初期化
   if (screenName === "select") {
@@ -1394,7 +1552,6 @@ function createPartnerFrame(partner) {
   fill.style.width = `${partner.progress}%`;
 
   gauge.appendChild(fill);
-
   row.appendChild(girlImg);
   row.appendChild(monsterImg);
   row.appendChild(gauge);
@@ -1404,7 +1561,6 @@ function createPartnerFrame(partner) {
    removeBtn.onclick = () => removePartner(partner);
 
    row.appendChild(removeBtn);
-
   return { row, fill };
 }
 
@@ -2459,6 +2615,244 @@ function dropKikkakeForPartners(depth) {
     stored: canStore
   };
 }
+
+// ===== セーブデータ設定領域 =====
+function executeSaveAction() {
+  if (isProcessing) return;
+  if (activeConfirm.slotIndex == null) return;
+
+  isProcessing = true;
+
+  const slot = activeConfirm.slotIndex;
+  const action = activeConfirm.action;
+
+  if (action === SAVE_ACTION.SAVE) {
+    saveToSlot(slot);
+  }
+
+  if (action === SAVE_ACTION.LOAD) {
+    loadFromSlot(slot);
+  }
+
+  if (action === SAVE_ACTION.DELETE) {
+    deleteSlot(slot);
+  }
+
+  resetSaveUIState();
+  refreshAllSaveSlots();
+
+  isProcessing = false;
+}
+// ===== セーブデータ設定領域 =====
+function resetSaveUIState() {
+  activeConfirm.slotIndex = null;
+  activeConfirm.action = SAVE_ACTION.NONE;
+
+  document.querySelectorAll(".save-action-btn").forEach(btn => {
+    btn.classList.remove("armed");
+    btn.disabled = false;
+    btn.style.opacity = "1";
+  });
+}
+// ===== セーブデータ設定領域 =====
+function setupSaveButtons() {
+  const slots = document.querySelectorAll(".save-slot");
+
+  slots.forEach(slot => {
+    const slotNumber = Number(slot.dataset.slot);
+
+    const buttons = slot.querySelectorAll(".save-action-btn");
+
+    buttons.forEach(btn => {
+      btn.onclick = () => {
+        const action = Number(btn.dataset.action);
+        handleButtonClick(slotNumber, action);
+      };
+    });
+  });
+}
+// ===== セーブデータ設定領域 =====
+function buildSaveData() {
+  return {
+    depth: currentDepth,
+    tier: calcTier(currentDepth),
+
+    ikeiStatus: IKEI_STATUS,
+    inventory: KIKKAKE_INVENTORY,
+    equipped: KIKKAKE_EQUIPPED,
+    colorBag: colorBag,
+
+    savedAt: new Date().toISOString()
+  };
+}
+// ===== セーブデータ設定領域 =====
+function saveToSlot(slot) {
+  const data = buildSaveData();
+
+  localStorage.setItem(
+    `game_save_slot_${slot}`,
+    JSON.stringify(data)
+  );
+
+  updateSaveSlotDisplay(slot, "セーブしました");
+}
+// ===== セーブデータ設定領域 =====
+function loadFromSlot(slot) {
+  const raw = localStorage.getItem(
+    `game_save_slot_${slot}`
+  );
+
+  if (!raw) {
+    updateSaveSlotDisplay(slot, "データがありません");
+    return;
+  }
+
+  const data = JSON.parse(raw);
+
+  currentDepth = data.depth;
+  IKEI_STATUS = data.ikeiStatus;
+  KIKKAKE_INVENTORY = data.inventory;
+  KIKKAKE_EQUIPPED = data.equipped;
+  colorBag = data.colorBag;
+
+  renderStatusScreen();
+  updateGateBackground();
+  renderColorBag();
+
+  updateSaveSlotDisplay(slot, "ロードしました");
+
+  // 戦闘状態はリセット
+  showScreen("settings");
+}
+// ===== セーブデータ設定領域 =====
+function deleteSlot(slot) {
+  localStorage.removeItem(
+    `game_save_slot_${slot}`
+  );
+
+  updateSaveSlotDisplay(slot, "セーブを削除しました");
+}
+// ===== セーブデータ設定領域 =====
+function updateSaveSlotDisplay(slot, message) {
+  const raw = localStorage.getItem(
+    `game_save_slot_${slot}`
+  );
+
+  const box = document.querySelector(
+    `.save-slot[data-slot="${slot}"]`
+  );
+
+  if (!box) return;
+
+  const line1 = box.querySelector(".save-status");
+  const line2 = box.querySelector(".save-time");
+
+  if (line1) line1.textContent = message;
+
+  if (raw) {
+    const data = JSON.parse(raw);
+    const date = new Date(data.savedAt);
+
+    if (line2) {
+      line2.textContent =
+        `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")} ` +
+        `${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
+    }
+  } else {
+    if (line2) line2.textContent = "";
+  }
+}
+// ===== セーブデータ設定領域 =====
+function refreshAllSaveSlots() {
+  [1, 2].forEach(slot => {
+    const raw = localStorage.getItem(
+      `game_save_slot_${slot}`
+    );
+
+    if (raw) {
+      updateSaveSlotDisplay(slot, "保存済み");
+    } else {
+      updateSaveSlotDisplay(slot, "空きスロット");
+    }
+  });
+}
+// ===== セーブデータ設定領域 =====
+function setConfirmState(slotNumber, action) {
+  resetSaveUIState();
+
+  activeConfirm.slotIndex = slotNumber;
+  activeConfirm.action = action;
+
+  const slot = document.querySelector(
+    `.save-slot[data-slot="${slotNumber}"]`
+  );
+
+  if (!slot) return;
+
+  const button = slot.querySelector(
+    `.save-action-btn[data-action="${action}"]`
+  );
+
+  if (!button) return;
+
+  button.classList.add("armed");
+}
+// ===== セーブデータ設定領域 =====
+function getActionButton(slot, action) {
+  if (action === SAVE_ACTION.SAVE) return slot.querySelector(".btn-save");
+  if (action === SAVE_ACTION.LOAD) return slot.querySelector(".btn-load");
+  if (action === SAVE_ACTION.DELETE) return slot.querySelector(".btn-delete");
+  return null;
+}
+// ===== セーブデータ設定領域 =====
+function disableOtherButtons() {
+  document.querySelectorAll(".save-action-btn").forEach(btn => {
+    const slot = Number(btn.closest(".save-slot").dataset.slot);
+    const action = Number(btn.dataset.action);
+
+    const isActive =
+      slot === activeConfirm.slotIndex &&
+      action === activeConfirm.action;
+
+    if (!isActive) {
+      btn.disabled = true;
+      btn.style.opacity = "0.3";
+    }
+  });
+}
+// ===== セーブデータ設定領域 =====
+function handleButtonClick(slotNumber, action) {
+  if (
+    activeConfirm.slotIndex === slotNumber &&
+    activeConfirm.action === action
+  ) {
+    executeSaveAction();
+    return;
+  }
+
+  setConfirmState(slotNumber, action);
+}
+// ===== セーブデータ設定領域 =====
+let settingsCancelInitialized = false;
+
+function setupSettingsCancelArea() {
+  if (settingsCancelInitialized) return;
+
+  const screen = document.getElementById("settingsScreen");
+  if (!screen) return;
+
+  screen.addEventListener("click", (e) => {
+    if (activeConfirm.action === SAVE_ACTION.NONE) return;
+    if (e.target.closest(".save-action-btn")) return;
+
+    resetSaveUIState();
+  });
+
+  settingsCancelInitialized = true;
+}
+// ===== セーブデータ設定領域 =====
+
+
 
 
 
