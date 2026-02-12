@@ -1163,7 +1163,6 @@ const KUNNAN_HP = [30,40,50,60,70,80,90,100,120,150];
 
 const PROGRESS_STEP = 25;
 const TICK_INTERVAL = 500;
-const COLOR_POOL = ["みどり","オレンジ","あお","むらさき","ブラウン","あか","くろ"];//色整理-NAME-LISTと統合するかも
 
 const GIRL_ORDER = ["淋漓", "唯奈", "スミレ"];
 
@@ -1261,11 +1260,6 @@ let currentGirlIndex = 0;
 // リザルト画面はこれしか見ない
 let LAST_BATTLE_EVENT = null;
 
-let currentEnemy = {
-  maxHp: 100,
-  hp: 100
-};
-
 let lastBattle = {
   stage: null,
   hp: null
@@ -1278,12 +1272,8 @@ setInterval(tick, TICK_INTERVAL);
 let selectedGirl = null;
 let selectedPairs = {};
 
-let currentDepth = 0;
+let currentDepth = 1;
 const MIN_DEPTH = 0;
-const MAX_DEPTH = 27; // 30 + 10*27 = 300
-function calcKunnanHp(depth) {
-  return 30 + depth * 10;
-}
 
 let currentKunnan = {
   mainColor: null,
@@ -1880,12 +1870,11 @@ function startBattle(stage, hp) {
   lastBattle.stage = stage;
   lastBattle.hp = hp;
 
-  currentEnemy.maxHp = hp;
-  currentEnemy.hp = hp;
+  currentKunnan.maxHp = hp;
+  currentKunnan.hp = hp;
   renderEnemyHp();
   
   currentKunnan.maxHp = hp;
-  currentKunnan.hp = hp;
   
   const mainMask = createMainMask();
   const subMask  = createSubMask();
@@ -2001,10 +1990,11 @@ function renderEnemyHp() {
   const text = document.querySelector(".enemy-hp-text");
   if (!fill || !text) return;
 
-  const ratio = currentEnemy.hp / currentEnemy.maxHp;
+  const ratio = currentKunnan.hp / currentKunnan.maxHp;
+  text.textContent = `${currentKunnan.hp} / ${currentKunnan.maxHp}`;
   fill.style.width = `${Math.max(0, ratio * 100)}%`;
 
-  text.textContent = `${currentEnemy.hp} / ${currentEnemy.maxHp}`;
+  text.textContent = `${currentKunnan.hp} / ${currentKunnan.maxHp}`;
 }
 
 function fightOnce(monsterId) {
@@ -2017,12 +2007,12 @@ function fightOnce(monsterId) {
   colorBag[colorId]--;
   renderColorBag();
 
-  currentEnemy.hp -= result.damage;
-  if (currentEnemy.hp < 0) currentEnemy.hp = 0;
+  currentKunnan.hp -= result.damage;
+if (currentKunnan.hp < 0) currentKunnan.hp = 0;
 
   renderEnemyHp();
   
-  if (currentEnemy.hp === 0) {
+  if (currentKunnan.hp === 0) {
   LAST_BATTLE_EVENT = dropKikkakeForPartners(currentDepth);
   showBattleResult();
   }
@@ -2128,32 +2118,6 @@ function createTestKikkake() {
       keisei_5: 1,
       keisei_6: 1
     }
-  };
-}
-
-function dropKikkakeForPartners() {
-  if (partners.length === 0) return null;
-
-  const partner =
-    partners[Math.floor(Math.random() * partners.length)];
-
-  const monsterId = partner.monsterId;
-  const inventory = KIKKAKE_INVENTORY[monsterId];
-
-  const kikkake = createTestKikkake();
-
-  const canStore = inventory.length < 6;
-
-  if (canStore) {
-    inventory.push(kikkake);
-  }
-
-  // ★ 戦闘結果として返す「出来事」
-  return {
-    monsterId,
-    code: kikkake.code,
-    dropped: true,          // ✔ を出す条件
-    stored: canStore        // 捨てたかどうか
   };
 }
 
@@ -2350,10 +2314,8 @@ function setupKunnanGateEvents() {
   const deepBtn = document.getElementById("goDeep");
   if (deepBtn) {
     deepBtn.onclick = () => {
-      if (currentDepth < MAX_DEPTH) {
         currentDepth++;
         updateGateBackground();
-      }
     };
   }
 
@@ -2399,25 +2361,6 @@ function generateKikkakeBonus(depth, affinityType) {
   }
   const randomPart = Math.floor(Math.random() * (randMax + 1));
   return base + tier + randomPart;
-}
-
-function createKikkake(depth) {
-  if (depth == null || depth < 1) {
-    depth = 1;
-  }
-  const tier = calcTier(depth);
-  const bonus = {};
-
-  affinities.forEach((type, index) => {
-    bonus[`keisei_${index + 1}`] =
-      generateKikkakeBonus(depth, type);
-  });
-
-  return {
-    code: generateEnhanceCode(), // 既存のコード生成
-    bonus,
-    tier: Math.floor(depth / 10)
-  };
 }
 
 function calcAttackDamage(baseKeisei, bonusKeisei) {
@@ -2467,44 +2410,50 @@ const BASE_KUNNAN_HP = 100;
 
 // 1 Tier（11階）分の上昇パターン
 const KUNNAN_TIER_PATTERN = [
-  0,    // 1階
-  25,   // 2
-  25,   // 3
-  25,   // 4
-  25,   // 5
-  30,   // 6
-  30,   // 7
-  30,   // 8
-  35,   // 9
-  35,   // 10
-  40    // 11
+  25, // 2階
+  25, // 3
+  25, // 4
+  25, // 5
+  30, // 6
+  30, // 7
+  30, // 8
+  35, // 9
+  35  // 10
 ];
 
-const KUNNAN_TIER_SIZE = KUNNAN_TIER_PATTERN.length; // 11
+// Tier跨ぎボーナス（10→11）
+const TIER_BREAK_BONUS = 40;
+
+const KUNNAN_TIER_SIZE = 10;
+
+function calcTier(depth) {
+  return Math.floor((depth - 1) / KUNNAN_TIER_SIZE) + 1;
+}
 
 function calcKunnanHp(depth) {
   if (depth <= 1) return BASE_KUNNAN_HP;
 
   let hp = BASE_KUNNAN_HP;
 
-  let remaining = depth - 1;
+  const tierIndex = Math.floor((depth - 1) / KUNNAN_TIER_SIZE);
+  const floorInTier = (depth - 1) % KUNNAN_TIER_SIZE;
 
-  // 何Tier分進んだか
-  const fullTiers = Math.floor(remaining / KUNNAN_TIER_SIZE);
-  const rest = remaining % KUNNAN_TIER_SIZE;
+  // 既に通過したTier分を丸ごと加算
+  hp += tierIndex * 300;
 
-  // Tier丸ごとの加算（1 Tier = 300）
-  hp += fullTiers * 300;
-
-  // 端数階層分をパターンから加算
-  for (let i = 1; i <= rest; i++) {
-    hp += KUNNAN_TIER_PATTERN[i];
+  // 現在Tier内の加算（2階以降のみ）
+  for (let i = 0; i < floorInTier; i++) {
+    if (i < KUNNAN_TIER_PATTERN.length) {
+      hp += KUNNAN_TIER_PATTERN[i];
+    }
   }
-  return hp;
-}
 
-function calcTier(depth) {
-  return Math.floor((depth - 1) / 11) + 1;
+  // Tier突入時の壁（10→11など）
+  if (floorInTier === 0 && depth > 1) {
+    hp += TIER_BREAK_BONUS;
+  }
+
+  return hp;
 }
 
 const KIKKAKE_BONUS_TABLE = [
@@ -2677,7 +2626,6 @@ function buildSaveData() {
     depth: currentDepth,
     tier: calcTier(currentDepth),
 
-    ikeiStatus: IKEI_STATUS,
     inventory: KIKKAKE_INVENTORY,
     equipped: KIKKAKE_EQUIPPED,
     colorBag: colorBag,
@@ -2710,7 +2658,6 @@ function loadFromSlot(slot) {
   const data = JSON.parse(raw);
 
   currentDepth = data.depth;
-  IKEI_STATUS = data.ikeiStatus;
   KIKKAKE_INVENTORY = data.inventory;
   KIKKAKE_EQUIPPED = data.equipped;
   colorBag = data.colorBag;
@@ -2798,13 +2745,6 @@ function setConfirmState(slotNumber, action) {
   button.classList.add("armed");
 }
 // ===== セーブデータ設定領域 =====
-function getActionButton(slot, action) {
-  if (action === SAVE_ACTION.SAVE) return slot.querySelector(".btn-save");
-  if (action === SAVE_ACTION.LOAD) return slot.querySelector(".btn-load");
-  if (action === SAVE_ACTION.DELETE) return slot.querySelector(".btn-delete");
-  return null;
-}
-// ===== セーブデータ設定領域 =====
 function disableOtherButtons() {
   document.querySelectorAll(".save-action-btn").forEach(btn => {
     const slot = Number(btn.closest(".save-slot").dataset.slot);
@@ -2858,7 +2798,9 @@ function setupSettingsCancelArea() {
 
 
 
-
+// ===== ゲーム起動時 初期化処理 =====
+setupKunnanGateEvents();
+refreshAllSaveSlots();
 </script>
 
 <footer id="pageFooter"><img src="image/logo.png" alt="色彩UM ロゴ"></footer>
