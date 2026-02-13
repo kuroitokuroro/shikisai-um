@@ -994,42 +994,6 @@ margin-top: 10px;
   
 <script>
 
-const colorMap = {
-  "安全 真": "みどり",
-  "幼 ユリ": "オレンジ",
-  "目覚 崇": "あお",
-  "風下 咲": "むらさき",
-  "文豪 統": "ブラウン",
-  "力業 透": "あか"
-};//色整理-NAME
-
-const colorCSS = {
-  "みどり": "#2f9e44",
-  "オレンジ": "#e67700",
-  "あお": "#1c7ed6",
-  "むらさき": "#7048e8",
-  "ブラウン": "#8c4a1f",
-  "あか": "#c92a2a",
-  "くろ": "#1a1a1a"
-};//色整理-NAME→HEX
-
-const colorClassMap = {
-  "みどり": "color-green",
-  "オレンジ": "color-orange",
-  "あお": "color-blue",
-  "むらさき": "color-purple",
-  "ブラウン": "color-brown",
-  "あか": "color-red",
-  
-  "green": "color-green",
-  "orange": "color-orange",
-  "blue": "color-blue",
-  "purple": "color-purple",
-  "brown": "color-brown",
-  "red": "color-red",
-};//色整理-NAME→CLASS
-// 色整理-orb：獲得orbとステータス画面orbが混在（orb整理時に着手予定）
-
 const girlImages = {
   "淋漓": "image/rinri.jpg",
   "唯奈": "image/yuina.jpg",
@@ -1148,16 +1112,7 @@ let IKEI_STATUS = {
     },
     color: "red"
   },
-};//色整理-NAME
-
-const COLOR_CLASSES = [
-  "color-red",
-  "color-blue",
-  "color-green",
-  "color-orange",
-  "color-purple",
-  "color-brown",
-];//色整理-CLASS
+};
 
 const KUNNAN_HP = [30,40,50,60,70,80,90,100,120,150];
 
@@ -1191,31 +1146,9 @@ const COLOR_CORE = {
            hex: "#8c4a1f",
            class: "color-brown",
            keisei: "keisei_5"}
-};// 色整理-CORE-ID
+};
 
-const KUNNAN_COLOR_HEX = Object.fromEntries(
-  Object.entries(COLOR_CORE)
-    .filter(([_, c]) => c.hex)
-    .map(([id, c]) => [id, c.hex])
-);//色整理-ID //色整理-HEX
-
-//色整理-KEISEI-ENTRY
-//色ID → 傾性ID への唯一の変換表
-const COLOR_TO_KEISEI = Object.fromEntries(
-  Object.entries(COLOR_CORE)
-    .filter(([_, c]) => c.keisei)
-    .map(([id, c]) => [id, c.keisei])
-);//色整理-KEISEI //色整理-ID
-
-const COLOR_IDS = Object.entries(COLOR_CORE)
-  .filter(([_, c]) => c.hex)
-  .map(([id]) => id);//色整理-ID
-  
-const COLOR_BY_KEISEI = Object.fromEntries(
-  Object.entries(COLOR_CORE)
-    .filter(([_, c]) => c.keisei)
-    .map(([id, c]) => [c.keisei, id])
-);
+const COLOR_IDS = Object.keys(COLOR_CORE);
 
 let KIKKAKE_INVENTORY = {
   makoto: [],
@@ -1280,7 +1213,7 @@ let currentKunnan = {
   subColor: null,
   hp: 0,
   maxHp: 0
-};//色整理-KEISEI //色整理-ID
+};
 
 let currentScreen = "select";
 
@@ -1304,8 +1237,9 @@ function keiseiByKunnan(monsterId) {
   const char = IKEI_STATUS[monsterId];
   if (!char) return { keiseiA: null, keiseiB: null, valueA: 0, valueB: 0 };
 
-  const keiseiA = COLOR_TO_KEISEI[currentKunnan.mainColor];
-  const keiseiB = COLOR_TO_KEISEI[currentKunnan.subColor];
+  const keiseiA = COLOR_CORE[currentKunnan.mainColor].keisei;
+const keiseiB = COLOR_CORE[currentKunnan.subColor].keisei;
+  
   return {
     keiseiA,
     keiseiB,
@@ -1331,18 +1265,25 @@ function selectAttackByKunnan(monsterId) {
     : { keisei: keiseiB, value: valueB };
 
   // 高い方
-  if (COLOR_BY_KEISEI[high.keisei] &&
-      colorBag[COLOR_BY_KEISEI[high.keisei]] > 0) {
+  const highColorId = getColorIdByKeisei(high.keisei);
+  if (highColorId && colorBag[highColorId] > 0) {
     return { hit: true, damage: high.value, keisei: high.keisei };
   }
 
   // 低い方
-  if (COLOR_BY_KEISEI[low.keisei] &&
-      colorBag[COLOR_BY_KEISEI[low.keisei]] > 0) {
+  const lowColorId = getColorIdByKeisei (low.keisei);
+  if (lowColorId &&
+    colorBag[lowColorId] > 0) {
     return { hit: true, damage: low.value, keisei: low.keisei };
   }
 
   return { hit: false, damage: 0, keisei: null };
+}
+
+function getColorIdByKeisei(keiseiKey) {
+  return Object.keys(COLOR_CORE).find(
+    id => COLOR_CORE[id].keisei === keiseiKey
+  );
 }
 
 function selectMonster(monsterId) {
@@ -1575,7 +1516,7 @@ function renderColorBag() {
 
   dot.className = "color-orb";
 
-  dot.classList.add(COLOR_CORE[color].class);//色整理
+  dot.classList.add(COLOR_CORE[color].class);
   bagFrame.appendChild(dot);
 }
 bag.appendChild(bagFrame);
@@ -1586,7 +1527,7 @@ bag.appendChild(bagFrame);
       group.className = "color-group";
       const orb = document.createElement("span");
       orb.className = "color-orb";
-      orb.classList.add(COLOR_CORE[color].class);//色整理
+      orb.classList.add(COLOR_CORE[color].class);
       const text = document.createElement("span");
       const warehouseCount = Math.min(count - 10, 100); 
       text.textContent = `× ${warehouseCount}`;
@@ -1641,7 +1582,7 @@ function renderStatusTabs() {
   
   Object.entries(IKEI_STATUS).forEach(([id, char]) => {
     const orb = document.createElement("span");
-    orb.className = `color-orb ${colorClassMap[char.color]}`;//色整理
+    orb.className = `color-orb ${COLOR_CORE[char.color].class}`;
     orb.title = char.name;
     orb.dataset.charId = id;
     orb.onclick = () => {
@@ -1701,7 +1642,7 @@ function createStatusCard(char, charId) {
     const dotBox = document.createElement("div");
     dotBox.className = "keisei-dot";
 
-    const colorClass = colorClassMap[char.color];//色整理
+    const colorClass = COLOR_CORE[char.color].class;
     const count = keiseiDot(value);
 
     for (let i = 0; i < count; i++) {
@@ -1857,12 +1798,13 @@ function startBattle(stage, hp) {
   
   main.style.setProperty(
   "--main-color",
-  KUNNAN_COLOR_HEX[mainColor]
+  COLOR_CORE[mainColor].hex
 );
-  sub.style.setProperty(
+
+sub.style.setProperty(
   "--sub-color",
-  KUNNAN_COLOR_HEX[subColor]
-);//色整理-HEX
+  COLOR_CORE[subColor].hex
+);
 
   renderBattlePartners();
   document.getElementById("battleArea").style.display = "block";
@@ -1967,7 +1909,7 @@ function pickMainAndSubColors() {
   } while (subColor === mainColor);
 
   return { mainColor, subColor };
-}//色整理-ID
+}
 
 document.querySelectorAll(".girl-icon").forEach(img => {
   img.addEventListener("click", () => {
@@ -2001,7 +1943,7 @@ function fightOnce(monsterId) {
   const result = selectAttackByKunnan(monsterId);
   if (!result.hit) return;
 
-  const colorId = COLOR_BY_KEISEI[result.keisei];
+  const colorId = getColorIdByKeisei(result.keisei);
   if (!colorId) return;
 
   colorBag[colorId]--;
@@ -2016,6 +1958,12 @@ if (currentKunnan.hp < 0) currentKunnan.hp = 0;
   LAST_BATTLE_EVENT = dropKikkakeForPartners(currentDepth);
   showBattleResult();
   }
+}
+
+function getColorIdByKeisei(keiseiKey) {
+  return Object.keys(COLOR_CORE).find(
+    id => COLOR_CORE[id].keisei === keiseiKey
+  );
 }
 
 function fightAgain() {
@@ -2082,7 +2030,7 @@ function renderBattlePartnerStats(wrapper, monsterId) {
     <div>${labelA} : ${valueA}</div>
     <div>${labelB} : ${valueB}</div>
   `;
-}//色整理-KEISEI //色整理-ID
+}
 
 function animateAttack(icon) {
   if (!icon) return;
@@ -2105,7 +2053,7 @@ function calcAttackPower(monsterId) {
 
   const { valueA, valueB } = result;
   return Math.max(valueA, valueB);
-}//色整理-KEISEI //色整理-ID
+}
 
 function createTestKikkake() {
   return {
@@ -2801,6 +2749,7 @@ function setupSettingsCancelArea() {
 // ===== ゲーム起動時 初期化処理 =====
 setupKunnanGateEvents();
 refreshAllSaveSlots();
+// ===== ゲーム起動時 初期化処理 =====
 </script>
 
 <footer id="pageFooter"><img src="image/logo.png" alt="色彩UM ロゴ"></footer>
