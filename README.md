@@ -4,10 +4,8 @@ This project is for personal learning purposes.
 
 All assets used in this project are either original creations by the author or sourced from free-to-use materials.
 
-<h2>異型頭をモチーフにしたRPGゲーム</h2>
-
+<h2>異型頭をモチーフにした素材収集系RPGゲーム</h2>
 タイトル：色彩UM（シキサイユーム）<br>
-ジャンル：異型頭系 素材収集RPG<br>
 推奨環境：Android　Chrome<br>
 進捗：未完成　制作中止<br>
 
